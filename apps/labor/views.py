@@ -108,3 +108,15 @@ def delete_payment(request, pk):
         payment.delete()
         messages.warning(request, f"Payment of ₹{amount} for {worker_name} has been deleted.")
     return redirect('labor:payment_list')
+
+@login_required
+def delete_labor(request, pk):
+    labor = get_object_or_404(Labor, pk=pk)
+    if request.method == 'POST':
+        name = labor.name
+        # Optional: Check if there's history and maybe just deactivate instead?
+        # But if the user explicitly wants to remove, we follow.
+        labor.delete()
+        messages.warning(request, f"Worker {name} and all their records have been removed.")
+        return redirect('labor:labor_list')
+    return redirect('labor:labor_list')

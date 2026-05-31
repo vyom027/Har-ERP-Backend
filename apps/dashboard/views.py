@@ -13,7 +13,7 @@ def home(request):
     today = timezone.now().date()
     
     # Stats
-    today_production = WorkEntry.objects.filter(work_date=today).aggregate(total=Sum('pieces'))['total'] or 0
+    active_production = WorkEntry.objects.filter(lot__status='active').aggregate(total=Sum('pieces'))['total'] or 0
     active_lots = Lot.objects.filter(status='active').count()
     total_labor_expense = WorkEntry.objects.aggregate(total=Sum('total_amount'))['total'] or 0
     total_paid = Payment.objects.aggregate(total=Sum('amount'))['total'] or 0
@@ -44,7 +44,7 @@ def home(request):
 
     context = {
         'stats': {
-            'today_production': today_production,
+            'active_production': active_production,
             'active_lots': active_lots,
             'total_expense': total_labor_expense,
             'pending_payments': pending_payments,

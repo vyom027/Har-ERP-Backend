@@ -7,8 +7,8 @@
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="surface-card p-5 rounded-2xl border-l-4 border-primary">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Today's Production</p>
-        <h3 class="text-xl font-bold text-slate-900">{{ stats.today_production }} <span class="text-xs font-normal text-slate-400 uppercase">pcs</span></h3>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Production</p>
+        <h3 class="text-xl font-bold text-slate-900">{{ stats.active_production }} <span class="text-xs font-normal text-slate-400 uppercase">pcs</span></h3>
     </div>
     <a href="{% url 'production:table' %}?status=active" class="surface-card p-5 rounded-2xl border-l-4 border-secondary hover:bg-slate-50 transition-colors group">
         <div class="flex items-center justify-between">

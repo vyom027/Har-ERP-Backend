@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, IntegerField
+from django.db.models.functions import Cast
 from apps.operations.models import Operation, SubOperation
 from apps.core.models import Lot, LotColor
 from apps.production.models import WorkEntry
@@ -34,9 +35,14 @@ def production_table(request):
     
     # Sorting logic
     if sort == 'lot_asc':
-        lots_qs = lots_qs.order_by('lot_number')
+        # Cast lot_number to integer for correct numerical sorting
+        lots_qs = lots_qs.annotate(
+            lot_num_int=Cast('lot_number', output_field=IntegerField())
+        ).order_by('lot_num_int')
     elif sort == 'lot_desc':
-        lots_qs = lots_qs.order_by('-lot_number')
+        lots_qs = lots_qs.annotate(
+            lot_num_int=Cast('lot_number', output_field=IntegerField())
+        ).order_by('-lot_num_int')
     elif sort == 'party_asc':
         lots_qs = lots_qs.order_by('party__name')
     elif sort == 'party_desc':
@@ -63,9 +69,11 @@ def production_table(request):
                 'colspan': 1
             })
 
-    # Fetch all entries to map them to the table
+    # Optimization: Filter entries only for the lots being shown
+    lot_ids = [l.id for l in lots]
+    entries_qs = WorkEntry.objects.filter(lot_id__in=lot_ids).select_related('labor', 'lot_color')
+    
     # Mapping structure: entries[lot_id][op_id][sub_op_id or 0][color_id] = entry_object
-    entries_qs = WorkEntry.objects.select_related('labor', 'lot_color').all()
     entries_map = {}
     for entry in entries_qs:
         l_id = entry.lot_id
@@ -293,7 +301,6 @@ def save_entry(request):
             'sub_id': int(sub_op_id or 0),
             'color_map': color_map
         })
-    return JsonResponse({'status': 'error'}, status=400)
     return JsonResponse({'status': 'error'}, status=400)
 
 @login_required
