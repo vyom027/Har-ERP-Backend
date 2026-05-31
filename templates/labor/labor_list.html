@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Labor | Jeans ERP{% endblock %}
+{% block header_title %}Labor Management{% endblock %}
+
+{% block main_content %}
+<div class="flex justify-between items-center mb-8">
+    <h3 class="text-xl font-bold text-slate-900 font-display">Stitching Workers</h3>
+    <a href="{% url 'labor:add_labor' %}" class="bg-primary hover:bg-sky-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-primary/20 transition-all btn-press flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+        Register New Worker
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for labor in labors %}
+    <div class="surface-card p-6 rounded-3xl group hover:border-primary/50 transition-all cursor-pointer shadow-sm hover:shadow-premium" onclick="window.location.href='{% url 'labor:labor_profile' labor.id %}'">
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center text-primary font-bold text-xl border border-sky-100">
+                    {{ labor.name.0|upper }}
+                </div>
+                <div>
+                    <h4 class="text-slate-900 font-bold font-display">{{ labor.name }}</h4>
+                    <p class="text-slate-500 text-xs">{{ labor.phone|default:"No Phone" }}</p>
+                </div>
+            </div>
+            <span class="w-2 h-2 rounded-full {% if labor.active %}bg-emerald-500{% else %}bg-slate-300{% endif %}"></span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 py-4 border-t border-slate-50">
+            <div>
+                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Earned</p>
+                <p class="text-slate-900 font-bold">₹{{ labor.total_earned }}</p>
+            </div>
+            <div>
+                <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Balance</p>
+                <p class="text-accent font-bold">₹{{ labor.pending_balance }}</p>
+            </div>
+        </div>
+        
+        <div class="mt-2 text-right">
+            <span class="text-primary text-sm font-semibold group-hover:translate-x-1 inline-flex items-center justify-end gap-1 transition-transform">
+                View Ledger
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

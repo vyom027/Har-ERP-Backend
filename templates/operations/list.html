@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Operations | Jeans ERP{% endblock %}
+{% block header_title %}Stitching Operations{% endblock %}
+
+{% block main_content %}
+<div class="glass rounded-2xl overflow-hidden shadow-xl">
+    <table class="w-full text-left">
+        <thead>
+            <tr class="text-gray-400 text-sm border-b border-white/5 bg-white/5">
+                <th class="px-6 py-4 font-medium">Order</th>
+                <th class="px-6 py-4 font-medium">Operation Name</th>
+                <th class="px-6 py-4 font-medium">Sub-Operations</th>
+                <th class="px-6 py-4 font-medium">Status</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+            {% for op in operations %}
+            <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 text-gray-400">#{{ op.display_order }}</td>
+                <td class="px-6 py-4 text-white font-bold">{{ op.name }}</td>
+                <td class="px-6 py-4">
+                    <div class="flex flex-wrap gap-2">
+                        {% for sub in op.sub_operations.all %}
+                        <span class="px-2 py-1 bg-white/5 rounded text-xs text-gray-400">{{ sub.name }}</span>
+                        {% empty %}
+                        <span class="text-gray-600 italic text-xs">None</span>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td class="px-6 py-4">
+                    <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase {% if op.active %}bg-emerald-500/10 text-emerald-400{% else %}bg-rose-500/10 text-rose-400{% endif %}">
+                        {{ op.active|yesno:"Active,Inactive" }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

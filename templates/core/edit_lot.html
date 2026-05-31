@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Lot #{{ lot.lot_number }} | Har Apperals{% endblock %}
+{% block header_title %}Edit Lot{% endblock %}
+
+{% block main_content %}
+<div class="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <form method="post" class="space-y-8">
+        {% csrf_token %}
+        
+        <!-- Lot Info Card -->
+        <div class="surface-card p-8 rounded-3xl shadow-premium">
+            <h4 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2 font-display">
+                <span class="w-1.5 h-6 bg-primary rounded-full"></span>
+                Basic Information
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Party / Buyer</label>
+                    <select name="party_id" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium cursor-pointer">
+                        {% for party in parties %}
+                        <option value="{{ party.id }}" {% if lot.party_id == party.id %}selected{% endif %}>{{ party.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Lot Number</label>
+                    <input type="text" name="lot_number" value="{{ lot.lot_number }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Total Pieces</label>
+                    <input type="number" name="total_pieces" value="{{ lot.total_pieces }}" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-bold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Status</label>
+                    <select name="status" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium cursor-pointer">
+                        <option value="active" {% if lot.status == 'active' %}selected{% endif %}>Active (In Progress)</option>
+                        <option value="closed" {% if lot.status == 'closed' %}selected{% endif %}>Closed (Finished)</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Remarks</label>
+                    <input type="text" name="remarks" value="{{ lot.remarks|default:'' }}" placeholder="Optional notes" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Breakdown Card -->
+        <div class="surface-card p-8 rounded-3xl shadow-premium" 
+             x-data="{ 
+                rows: [
+                    {% for color in lot.colors.all %}
+                    { id: {{ color.id }}, name: '{{ color.color_name|escapejs }}', pieces: {{ color.pieces }} },
+                    {% endfor %}
+                ] 
+             }">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h4 class="text-lg font-bold text-slate-900 flex items-center gap-2 font-display">
+                        <span class="w-1.5 h-6 bg-secondary rounded-full"></span>
+                        Color Breakdown
+                    </h4>
+                    <p class="text-xs text-slate-400 mt-1">Update colors and pieces for this lot</p>
+                </div>
+                <button type="button" @click="rows.push({id: Date.now(), name: '', pieces: 0})" class="bg-secondary/10 hover:bg-secondary/20 text-secondary px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Color Row
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <template x-for="(row, index) in rows" :key="row.id">
+                    <div class="flex gap-4 items-end animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div class="flex-1">
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Color Name</label>
+                            <input type="text" name="colors[]" x-model="row.name" placeholder="e.g. Royal Blue" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all">
+                        </div>
+                        <div class="w-32">
+                            <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Pieces</label>
+                            <input type="number" name="pieces[]" x-model="row.pieces" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all">
+                        </div>
+                        <button type="button" @click="rows.splice(index, 1)" class="p-2.5 text-slate-300 hover:text-rose-500 transition-colors mb-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </template>
+                <div x-show="rows.length === 0" class="py-12 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <p class="text-sm text-slate-400 font-medium">No colors added yet. This lot will be treated as 'General'.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <a href="{% url 'core:lot_detail' lot.id %}" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-2xl text-center transition-all btn-press">
+                Cancel
+            </a>
+            <button type="submit" class="flex-[2] bg-primary hover:bg-sky-700 text-white font-bold py-4 px-12 rounded-2xl shadow-xl shadow-primary/20 transition-all btn-press">
+                Update Lot Information
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

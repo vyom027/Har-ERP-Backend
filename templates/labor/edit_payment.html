@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Payment | Har Apperals{% endblock %}
+{% block header_title %}Edit Payment{% endblock %}
+
+{% block main_content %}
+<div class="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl flex items-center gap-3 bg-rose-50 text-rose-700 border border-rose-100">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="font-bold text-sm">{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="surface-card p-10 rounded-[2.5rem] shadow-premium relative overflow-hidden">
+        <!-- Decoration -->
+        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16"></div>
+        
+        <form method="post" class="space-y-8 relative">
+            {% csrf_token %}
+            
+            <div class="flex items-center gap-4 mb-2">
+                <div class="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center text-primary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 text-lg">{{ payment.labor.name }}</h4>
+                    <p class="text-slate-500 text-xs">Current Balance: ₹{{ payment.labor.pending_balance }}</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Amount (₹)</label>
+                    <input type="number" name="amount" value="{{ payment.amount }}" step="0.01" required
+                           class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-emerald-600 font-bold focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all text-xl">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Payment Date</label>
+                    <input type="date" name="payment_date" value="{{ payment.payment_date|date:'Y-m-d' }}" required
+                           class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Notes (Optional)</label>
+                <textarea name="note" rows="3" placeholder="e.g., Weekly settlement, Advanced payment..."
+                          class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">{{ payment.note|default:'' }}</textarea>
+            </div>
+
+            <div class="pt-4 flex items-center gap-4">
+                <a href="{% url 'labor:payment_list' %}" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-4 rounded-2xl text-center transition-all btn-press">
+                    Cancel
+                </a>
+                <button type="submit" class="flex-[2] bg-primary hover:bg-sky-700 text-white font-bold py-4 px-12 rounded-2xl shadow-xl shadow-primary/20 transition-all btn-press">
+                    Update Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% load production_extras %}
+<div id="production-spreadsheet-wrapper" class="surface-card rounded-2xl overflow-hidden flex flex-col h-full shadow-premium">
+    <!-- Filter Bar -->
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50/50">
+        <div class="flex items-center gap-4">
+            <div class="relative group">
+                <input type="text" 
+                       name="search" 
+                       value="{{ search }}"
+                       placeholder="Search Lot/Party..." 
+                       class="bg-white border border-slate-200 rounded-xl px-10 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none w-64 transition-all"
+                       hx-get="{% url 'production:table' %}"
+                       hx-trigger="keyup changed delay:500ms"
+                       hx-target="#table-container"
+                       hx-select="#table-container"
+                       hx-include="[name='status']"
+                       hx-push-url="true">
+                <svg class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <select name="status" 
+                    class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-600 outline-none focus:border-primary transition-all"
+                    hx-get="{% url 'production:table' %}"
+                    hx-trigger="change"
+                    hx-target="#table-container"
+                    hx-select="#table-container"
+                    hx-include="[name='search']"
+                    hx-push-url="true">
+                <option value="all" {% if status == 'all' %}selected{% endif %}>All Status</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                <option value="closed" {% if status == 'closed' %}selected{% endif %}>Closed</option>
+                <option value="shipped" {% if status == 'shipped' %}selected{% endif %}>Shipped</option>
+            </select>
+            <button hx-get="{% url 'production:quick_add' %}" 
+                    hx-target="#modal-content" 
+                    @click="$dispatch('open-modal')"
+                    class="bg-sky-50 hover:bg-sky-100 text-primary px-4 py-2 rounded-xl text-sm font-bold transition-all btn-press flex items-center gap-2 border border-sky-100 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Add Production
+            </button>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full"></span> Completed
+            </span>
+            <span class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span class="w-2 h-2 bg-rose-500 rounded-full"></span> Pending
+            </span>
+        </div>
+    </div>
+
+    <!-- Spreadsheet Container -->
+    <div id="table-container" class="flex-1 overflow-auto custom-scrollbar relative">
+        <table class="w-full border-collapse text-[11px]">
+            <thead>
+                <tr class="bg-slate-50">
+                    <th class="sticky left-0 top-0 z-30 bg-white border-b border-r border-slate-200 px-4 py-3 min-w-[100px] text-left text-slate-500 font-bold uppercase tracking-tighter" rowspan="2">
+                        <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'lot_asc' %}lot_desc{% else %}lot_asc{% endif %}&search={{ search }}&status={{ status }}"
+                           hx-target="#table-container"
+                           hx-select="#table-container"
+                           hx-push-url="true"
+                           class="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors">
+                            Lot No
+                            <span class="text-[10px]">
+                                {% if current_sort == 'lot_asc' %}▲{% elif current_sort == 'lot_desc' %}▼{% else %}⇅{% endif %}
+                            </span>
+                        </a>
+                    </th>
+                    <th class="sticky left-[100px] top-0 z-30 bg-white border-b border-r border-slate-200 px-4 py-3 min-w-[150px] text-left text-slate-500 font-bold uppercase tracking-tighter" rowspan="2">
+                        <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'party_asc' %}party_desc{% else %}party_asc{% endif %}&search={{ search }}&status={{ status }}"
+                           hx-target="#table-container"
+                           hx-select="#table-container"
+                           hx-push-url="true"
+                           class="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors">
+                            Party
+                            <span class="text-[10px]">
+                                {% if current_sort == 'party_asc' %}▲{% elif current_sort == 'party_desc' %}▼{% else %}⇅{% endif %}
+                            </span>
+                        </a>
+                    </th>
+                    {% for h in header_config %}
+                    <th class="sticky top-0 z-20 bg-slate-50 border-b border-r border-slate-200 px-4 py-3 text-center text-slate-900 font-bold font-display" colspan="{{ h.colspan }}">
+                        {{ h.op.name }}
+                    </th>
+                    {% endfor %}
+                </tr>
+                <tr class="bg-slate-50">
+                    {% for h in header_config %}
+                        {% for sub in h.subs %}
+                        <th class="sticky top-[45px] z-20 bg-slate-50 border-b border-r border-slate-200 px-4 py-2 text-center text-slate-400 font-bold uppercase tracking-widest text-[9px]">
+                            {{ sub.name|default:"-" }}
+                        </th>
+                        {% endfor %}
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for lot in lots %}
+                <tr class="hover:bg-slate-50/50 transition-colors group">
+                    <td class="sticky left-0 z-10 bg-white border-r border-slate-100 px-4 py-4 font-bold text-slate-900 group-hover:bg-slate-50">
+                        <a href="{% url 'core:lot_detail' lot.id %}" class="text-primary hover:underline font-display">
+                            {{ lot.lot_number }}
+                        </a>
+                    </td>
+                    <td class="sticky left-[100px] z-10 bg-white border-r border-slate-100 px-4 py-4 text-slate-600 group-hover:bg-slate-50">
+                        <div class="truncate w-[130px] font-semibold">{{ lot.party.name }}</div>
+                        <div class="text-[10px] text-slate-400">{{ lot.total_pieces }} pcs</div>
+                    </td>
+
+                    {% for h in header_config %}
+                        {% for sub in h.subs %}
+                        {% with sub_id=sub.id|default:0 %}
+                        <td id="cell-{{ lot.id }}-{{ h.op.id }}-{{ sub_id }}"
+                            class="border-r border-slate-100 p-1.5 min-w-[160px] relative cursor-pointer hover:bg-primary/5 transition-all"
+                            hx-get="{% url 'production:entry_modal' %}?lot_id={{ lot.id }}&op_id={{ h.op.id }}&sub_op_id={{ sub_id }}"
+                            hx-target="#modal-content"
+                            @click="$dispatch('open-modal')">
+                            
+                            <div class="flex flex-col gap-1">
+                                {% with gen_entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id|get_item:None %}
+                                {% if gen_entries %}
+                                <div class="px-2 py-1 rounded shadow-sm border bg-emerald-50 border-emerald-100 text-emerald-800">
+                                    <div class="flex flex-col gap-0.5">
+                                        {% for entry in gen_entries %}
+                                        <div class="flex items-center justify-between gap-1 border-t border-emerald-100/50 pt-0.5 mt-0.5 first:border-0 first:pt-0 first:mt-0">
+                                            <span class="font-bold text-[10px] truncate max-w-[50px]">{{ entry.labor.name }}</span>
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-[10px] font-bold">{{ entry.pieces }}{% if entry.size %}({{ entry.size }}){% endif %}</span>
+                                                <span class="text-slate-300 text-[9px]">·</span>
+                                                <span class="font-bold text-[10px]">₹{{ entry.rate|floatformat:1 }}</span>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% endwith %}
+
+                                {% for color in lot.colors.all %}
+                                    {% with color_entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id|get_item:color.id %}
+                                    <div class="px-2 py-1 rounded shadow-sm border {% if color_entries %}bg-emerald-50 border-emerald-100 text-emerald-800{% else %}bg-slate-50 border-slate-100 text-slate-400 opacity-60{% endif %}">
+                                        <div class="flex flex-col gap-0.5">
+                                            <div class="flex items-center justify-between">
+                                                <span class="font-bold tracking-tight text-[10px] uppercase">{{ color.color_name }}</span>
+                                                {% if not color_entries %}
+                                                    <span class="text-[8px] uppercase tracking-widest font-bold opacity-40">Pending</span>
+                                                {% endif %}
+                                            </div>
+                                            {% if color_entries %}
+                                                {% for entry in color_entries %}
+                                                <div class="flex items-center justify-between gap-1 border-t border-emerald-100/50 pt-0.5 mt-0.5 first:border-0 first:pt-0 first:mt-0">
+                                                    <span class="text-[9px] font-semibold truncate max-w-[50px]">{{ entry.labor.name }}</span>
+                                                    <div class="flex items-center gap-1">
+                                                        <span class="text-[9px] font-bold">{{ entry.pieces }}{% if entry.size %}({{ entry.size }}){% endif %}</span>
+                                                        <span class="text-slate-300 text-[8px]">·</span>
+                                                        <span class="font-bold text-[9px]">₹{{ entry.rate|floatformat:1 }}</span>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+
+                            <!-- Cell Status Indicator -->
+                            <div class="absolute right-1 top-1 w-1.5 h-1.5 rounded-full ring-2 ring-white
+                                {% with entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id %}
+                                    {% if entries|length > 0 %}bg-emerald-500
+                                    {% else %}bg-rose-500{% endif %}
+                                {% endwith %}">
+                            </div>
+                        </td>
+                        {% endwith %}
+                        {% endfor %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

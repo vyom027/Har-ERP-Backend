@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment
+.env
+.virtualenvs/
+.local/
+.cache/
+
+# Database
+db.sqlite3
+
+# Build artifacts
+staticfiles/
+deploy.zip
+
+# Git
+.git/

@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | Jeans ERP{% endblock %}
+{% block header_title %}Analytics Overview{% endblock %}
+
+{% block main_content %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="surface-card p-5 rounded-2xl border-l-4 border-primary">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Today's Production</p>
+        <h3 class="text-xl font-bold text-slate-900">{{ stats.today_production }} <span class="text-xs font-normal text-slate-400 uppercase">pcs</span></h3>
+    </div>
+    <a href="{% url 'production:table' %}?status=active" class="surface-card p-5 rounded-2xl border-l-4 border-secondary hover:bg-slate-50 transition-colors group">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Active Lots</p>
+                <h3 class="text-xl font-bold text-slate-900">{{ stats.active_lots }}</h3>
+            </div>
+            <svg class="w-5 h-5 text-slate-300 group-hover:text-secondary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </div>
+    </a>
+    <div class="surface-card p-5 rounded-2xl border-l-4 border-emerald-500">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Labor Cost</p>
+        <h3 class="text-xl font-bold text-slate-900">₹{{ stats.total_expense }}</h3>
+    </div>
+    <div class="surface-card p-5 rounded-2xl border-l-4 border-rose-500">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pending Payments</p>
+        <h3 class="text-xl font-bold text-slate-900">₹{{ stats.pending_payments }}</h3>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Daily Production -->
+    <div class="surface-card p-6 rounded-2xl">
+        <h4 class="text-sm font-bold mb-4 text-slate-900 font-display uppercase tracking-wider">Daily Production (30 Days)</h4>
+        <div class="h-[180px]">
+            <canvas id="dailyProdChart"></canvas>
+        </div>
+    </div>
+    <!-- Top Workers -->
+    <div class="surface-card p-6 rounded-2xl">
+        <h4 class="text-sm font-bold mb-4 text-slate-900 font-display uppercase tracking-wider">Top 5 Workers</h4>
+        <div class="h-[180px]">
+            <canvas id="topWorkersChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Cost Breakdown -->
+    <div class="surface-card p-6 rounded-2xl">
+        <h4 class="text-sm font-bold mb-4 text-slate-900 font-display uppercase tracking-wider">Cost by Operation</h4>
+        <div class="h-[220px] relative">
+            <canvas id="opBreakdownChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="lg:col-span-2 surface-card p-6 rounded-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="text-sm font-bold text-slate-900 font-display uppercase tracking-wider">Recent Work Entries</h4>
+            <a href="{% url 'production:table' %}" class="text-primary text-[10px] font-bold uppercase tracking-widest hover:underline">View All</a>
+        </div>
+        <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-slate-400 text-[10px] border-b border-slate-100 uppercase tracking-widest font-bold">
+                        <th class="pb-3">Lot</th>
+                        <th class="pb-3">Worker</th>
+                        <th class="pb-3">Operation</th>
+                        <th class="pb-3">Pieces</th>
+                        <th class="pb-3 text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% for entry in recent_entries %}
+                    <tr class="text-sm">
+                        <td class="py-3 text-slate-900 font-bold">#{{ entry.lot.lot_number }}</td>
+                        <td class="py-3 text-slate-600 font-medium">{{ entry.labor.name }}</td>
+                        <td class="py-3">
+                            <span class="px-2 py-0.5 bg-slate-100 rounded text-slate-500 text-[9px] font-bold uppercase">
+                                {{ entry.operation.name }}
+                            </span>
+                        </td>
+                        <td class="py-3 text-slate-600">{{ entry.pieces }}</td>
+                        <td class="py-3 text-slate-900 font-bold text-right">₹{{ entry.total_amount }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-slate-400 text-xs">No recent work entries.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Chart.js Defaults for Light Mode
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // Daily Production Chart
+    const dailyProdData = JSON.parse('{{ charts.daily_prod|safe }}');
+    new Chart(document.getElementById('dailyProdChart'), {
+        type: 'line',
+        data: {
+            labels: dailyProdData.labels,
+            datasets: [{
+                label: 'Pieces',
+                data: dailyProdData.data,
+                borderColor: '#0ea5e9',
+                backgroundColor: 'rgba(14, 165, 233, 0.05)',
+                borderWidth: 3,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { padding: 10 } },
+                x: { grid: { display: false }, border: { display: false }, ticks: { padding: 10 } }
+            }
+        }
+    });
+
+    // Top Workers Chart
+    const topWorkersData = JSON.parse('{{ charts.top_workers|safe }}');
+    new Chart(document.getElementById('topWorkersChart'), {
+        type: 'bar',
+        data: {
+            labels: topWorkersData.labels,
+            datasets: [{
+                label: 'Earnings (₹)',
+                data: topWorkersData.data,
+                backgroundColor: '#0d9488',
+                borderRadius: 6,
+                barThickness: 32
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: '#f1f5f9' }, border: { display: false } },
+                x: { grid: { display: false }, border: { display: false } }
+            }
+        }
+    });
+
+    // Operation Breakdown
+    const opBreakdownData = JSON.parse('{{ charts.op_breakdown|safe }}');
+    new Chart(document.getElementById('opBreakdownChart'), {
+        type: 'doughnut',
+        data: {
+            labels: opBreakdownData.labels,
+            datasets: [{
+                data: opBreakdownData.data,
+                backgroundColor: [
+                    '#0ea5e9', '#0d9488', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'
+                ],
+                borderWidth: 4,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' } }
+            },
+            cutout: '75%'
+        }
+    });
+</script>
+{% endblock %}

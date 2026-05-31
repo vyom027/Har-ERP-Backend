@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | Har Apperals</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0ea5e9; /* Sky-500 */
+            --secondary: #0d9488; /* Teal-600 */
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: #f0f9ff; /* Very light sky blue */
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(13, 148, 136, 0.1) 0px, transparent 50%);
+            min-height: screen;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, .font-display { font-family: 'Outfit', sans-serif; }
+
+        .login-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .login-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.08);
+        }
+
+        .input-friendly {
+            background: #f8fafc;
+            border: 2px solid #f1f5f9;
+            transition: all 0.2s ease;
+        }
+        .input-friendly:focus {
+            background: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+            outline: none;
+        }
+
+        .btn-friendly {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+        .btn-friendly:hover {
+            filter: brightness(1.05);
+            transform: scale(1.01);
+            box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.4);
+        }
+        .btn-friendly:active { transform: scale(0.98); }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-box {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-md fade-in">
+        <!-- Logo & Title -->
+        <div class="text-center mb-10">
+            <div class="w-20 h-20 logo-box rounded-[2rem] mx-auto flex items-center justify-center mb-6 transition-transform hover:scale-105 duration-500">
+                <span class="text-3xl font-bold text-white tracking-tighter">HA</span>
+            </div>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">Har Apperals</h1>
+            <p class="text-slate-500 font-medium">Production Management System</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-card p-10 rounded-[2.5rem]">
+            <h2 class="text-xl font-bold text-slate-800 mb-8 text-center">Welcome back! Please sign in.</h2>
+            
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2.5 ml-1">Username</label>
+                    <div class="relative group">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-500 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </span>
+                        <input type="text" name="username" required placeholder="Your username" class="input-friendly w-full rounded-2xl pl-12 pr-6 py-4 text-slate-900 font-medium placeholder:text-slate-400">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2.5 ml-1">Password</label>
+                    <div class="relative group">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-sky-500 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        </span>
+                        <input type="password" name="password" required placeholder="Your password" class="input-friendly w-full rounded-2xl pl-12 pr-6 py-4 text-slate-900 font-medium placeholder:text-slate-400">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="btn-friendly w-full py-4 rounded-2xl text-lg font-bold shadow-lg">
+                        Sign In
+                    </button>
+                </div>
+            </form>
+
+            {% if form.errors %}
+            <div class="mt-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-sm text-center font-bold">
+                Invalid username or password. Please try again.
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="text-center mt-12">
+            <p class="text-slate-400 text-xs font-semibold uppercase tracking-widest">
+                &copy; 2026 Har Apperals &bull; Factory ERP
+            </p>
+        </div>
+    </div>
+</body>
+</html>
