@@ -110,64 +110,83 @@
                         {% for sub in h.subs %}
                         {% with sub_id=sub.id|default:0 %}
                         <td id="cell-{{ lot.id }}-{{ h.op.id }}-{{ sub_id }}"
-                            class="border-r border-slate-100 p-1.5 min-w-[160px] relative cursor-pointer hover:bg-primary/5 transition-all"
-                            hx-get="{% url 'production:entry_modal' %}?lot_id={{ lot.id }}&op_id={{ h.op.id }}&sub_op_id={{ sub_id }}"
-                            hx-target="#modal-content"
-                            @click="$dispatch('open-modal')">
+                            class="border-r border-slate-100 p-1.5 min-w-[160px] relative group">
                             
-                            <div class="flex flex-col gap-1">
-                                {% with gen_entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id|get_item:None %}
+                            <!-- Cell Grid for Precision Clicks -->
+                            <div class="flex flex-col gap-1.5 h-full min-h-[40px]">
+                                {% with gen_entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id|get_item:0 %}
                                 {% if gen_entries %}
-                                <div class="px-2 py-1 rounded shadow-sm border bg-emerald-50 border-emerald-100 text-emerald-800">
-                                    <div class="flex flex-col gap-0.5">
-                                        {% for entry in gen_entries %}
-                                        <div class="flex items-center justify-between gap-1 border-t border-emerald-100/50 pt-0.5 mt-0.5 first:border-0 first:pt-0 first:mt-0">
-                                            <span class="font-bold text-[10px] truncate max-w-[50px]">{{ entry.labor.name }}</span>
+                                <div class="flex flex-col gap-1">
+                                    {% for entry in gen_entries %}
+                                    <div class="px-2 py-1.5 rounded shadow-sm border bg-emerald-50 border-emerald-100 text-emerald-800 cursor-pointer hover:bg-emerald-100 transition-all"
+                                         hx-get="{% url 'production:entry_modal' %}?lot_id={{ lot.id }}&op_id={{ h.op.id }}&sub_op_id={{ sub_id }}&entry_id={{ entry.id }}"
+                                         hx-target="#modal-content"
+                                         @click="$dispatch('open-modal')">
+                                        <div class="flex items-center justify-between gap-1">
+                                            <span class="font-bold text-[10px] truncate max-w-[60px]">{{ entry.labor.name }}</span>
                                             <div class="flex items-center gap-1">
                                                 <span class="text-[10px] font-bold">{{ entry.pieces }}{% if entry.size %}({{ entry.size }}){% endif %}</span>
                                                 <span class="text-slate-300 text-[9px]">·</span>
                                                 <span class="font-bold text-[10px]">₹{{ entry.rate|floatformat:1 }}</span>
                                             </div>
                                         </div>
-                                        {% endfor %}
                                     </div>
+                                    {% endfor %}
                                 </div>
                                 {% endif %}
                                 {% endwith %}
 
                                 {% for color in lot.colors.all %}
                                     {% with color_entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id|get_item:color.id %}
-                                    <div class="px-2 py-1 rounded shadow-sm border {% if color_entries %}bg-emerald-50 border-emerald-100 text-emerald-800{% else %}bg-slate-50 border-slate-100 text-slate-400 opacity-60{% endif %}">
-                                        <div class="flex flex-col gap-0.5">
-                                            <div class="flex items-center justify-between">
-                                                <span class="font-bold tracking-tight text-[10px] uppercase">{{ color.color_name }}</span>
-                                                {% if not color_entries %}
-                                                    <span class="text-[8px] uppercase tracking-widest font-bold opacity-40">Pending</span>
-                                                {% endif %}
-                                            </div>
-                                            {% if color_entries %}
-                                                {% for entry in color_entries %}
-                                                <div class="flex items-center justify-between gap-1 border-t border-emerald-100/50 pt-0.5 mt-0.5 first:border-0 first:pt-0 first:mt-0">
-                                                    <span class="text-[9px] font-semibold truncate max-w-[50px]">{{ entry.labor.name }}</span>
+                                    <div class="flex flex-col gap-1">
+                                        {% if color_entries %}
+                                            {% for entry in color_entries %}
+                                            <div class="px-2 py-1.5 rounded shadow-sm border bg-emerald-50 border-emerald-100 text-emerald-800 cursor-pointer hover:bg-emerald-100 transition-all"
+                                                 hx-get="{% url 'production:entry_modal' %}?lot_id={{ lot.id }}&op_id={{ h.op.id }}&sub_op_id={{ sub_id }}&entry_id={{ entry.id }}"
+                                                 hx-target="#modal-content"
+                                                 @click="$dispatch('open-modal')">
+                                                <div class="flex items-center justify-between mb-0.5">
+                                                    <span class="font-bold tracking-tight text-[9px] uppercase opacity-60">{{ color.color_name }}</span>
+                                                </div>
+                                                <div class="flex items-center justify-between gap-1">
+                                                    <span class="text-[10px] font-bold truncate max-w-[60px]">{{ entry.labor.name }}</span>
                                                     <div class="flex items-center gap-1">
-                                                        <span class="text-[9px] font-bold">{{ entry.pieces }}{% if entry.size %}({{ entry.size }}){% endif %}</span>
+                                                        <span class="text-[10px] font-bold">{{ entry.pieces }}{% if entry.size %}({{ entry.size }}){% endif %}</span>
                                                         <span class="text-slate-300 text-[8px]">·</span>
-                                                        <span class="font-bold text-[9px]">₹{{ entry.rate|floatformat:1 }}</span>
+                                                        <span class="font-bold text-[10px]">₹{{ entry.rate|floatformat:1 }}</span>
                                                     </div>
                                                 </div>
-                                                {% endfor %}
-                                            {% endif %}
-                                        </div>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <!-- Ghost Add Area for specific color -->
+                                            <div class="px-2 py-1 rounded border border-dashed border-slate-100 text-slate-300 flex items-center justify-between opacity-0 group-hover:opacity-100 hover:bg-primary/5 cursor-pointer transition-all"
+                                                 hx-get="{% url 'production:entry_modal' %}?lot_id={{ lot.id }}&op_id={{ h.op.id }}&sub_op_id={{ sub_id }}&color_id={{ color.id }}"
+                                                 hx-target="#modal-content"
+                                                 @click="$dispatch('open-modal')">
+                                                <span class="text-[8px] uppercase font-bold tracking-widest">{{ color.color_name }}</span>
+                                                <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                                            </div>
+                                        {% endif %}
                                     </div>
                                     {% endwith %}
                                 {% endfor %}
+
+                                <!-- Master Add Area (Appears at bottom if space) -->
+                                <div class="flex-1 min-h-[20px] flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer hover:bg-primary/5 rounded transition-all"
+                                     hx-get="{% url 'production:entry_modal' %}?lot_id={{ lot.id }}&op_id={{ h.op.id }}&sub_op_id={{ sub_id }}"
+                                     hx-target="#modal-content"
+                                     @click="$dispatch('open-modal')">
+                                    <div class="bg-primary/10 text-primary p-0.5 rounded-full">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Cell Status Indicator -->
                             <div class="absolute right-1 top-1 w-1.5 h-1.5 rounded-full ring-2 ring-white
                                 {% with entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id %}
-                                    {% if entries|length > 0 %}bg-emerald-500
-                                    {% else %}bg-rose-500{% endif %}
+                                    {% if entries %}bg-emerald-500{% else %}bg-rose-500{% endif %}
                                 {% endwith %}">
                             </div>
                         </td>

@@ -4,7 +4,7 @@
     
     <!-- Cell Grid for Precision Clicks -->
     <div class="flex flex-col gap-1.5 h-full min-h-[40px]">
-        {% with gen_entries=color_map|get_item:None %}
+        {% with gen_entries=color_map|get_item:0 %}
         {% if gen_entries %}
         <div class="flex flex-col gap-1">
             {% for entry in gen_entries %}

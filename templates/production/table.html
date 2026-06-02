@@ -5,55 +5,6 @@
 {% block header_title %}Production Spreadsheet{% endblock %}
 
 {% block main_content %}
-<script>
-    function quickAddModalData() {
-        return {
-            lotId: '',
-            opId: '',
-            colorId: 'all',
-            workerId: '',
-            colors: [],
-            limits: {},
-            async fetchLotData() {
-                if (!this.lotId) {
-                    this.colors = [];
-                    this.limits = {};
-                    this.colorId = 'all';
-                    return;
-                }
-                let res = await fetch(`/production/get-lot-data/?lot_id=${this.lotId}`);
-                let data = await res.json();
-                this.colors = data.colors;
-                this.limits = data.limits;
-                this.colorId = 'all';
-            },
-            get currentLimit() {
-                if (!this.opId || !this.limits[this.opId]) return 0;
-                let d = this.limits[this.opId][this.colorId];
-                if (!d) return 0;
-                let alloted = d.alloted;
-                if (this.workerId && d.labor_map[this.workerId]) {
-                    alloted -= d.labor_map[this.workerId];
-                }
-                return Math.max(0, d.total - alloted);
-            },
-            get totalPieces() {
-                if (!this.opId || !this.limits[this.opId]) return 0;
-                return this.limits[this.opId][this.colorId] ? this.limits[this.opId][this.colorId].total : 0;
-            },
-            get allotedPieces() {
-                if (!this.opId || !this.limits[this.opId]) return 0;
-                let d = this.limits[this.opId][this.colorId];
-                if (!d) return 0;
-                let alloted = d.alloted;
-                if (this.workerId && d.labor_map[this.workerId]) {
-                    alloted -= d.labor_map[this.workerId];
-                }
-                return alloted;
-            }
-        }
-    }
-</script>
 <div id="production-spreadsheet-wrapper" class="surface-card rounded-2xl overflow-hidden flex flex-col h-full shadow-premium">
     <!-- Filter Bar -->
     <div class="p-4 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50/50">
@@ -169,7 +120,7 @@
                             
                             <!-- Cell Grid for Precision Clicks -->
                             <div class="flex flex-col gap-1.5 h-full min-h-[40px]">
-                                {% with gen_entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id|get_item:None %}
+                                {% with gen_entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id|get_item:0 %}
                                 {% if gen_entries %}
                                 <div class="flex flex-col gap-1">
                                     {% for entry in gen_entries %}
@@ -241,8 +192,7 @@
                             <!-- Cell Status Indicator -->
                             <div class="absolute right-1 top-1 w-1.5 h-1.5 rounded-full ring-2 ring-white
                                 {% with entries=entries_map|get_item:lot.id|get_item:h.op.id|get_item:sub_id %}
-                                    {% if entries|length > 0 %}bg-emerald-500
-                                    {% else %}bg-rose-500{% endif %}
+                                    {% if entries %}bg-emerald-500{% else %}bg-rose-500{% endif %}
                                 {% endwith %}">
                             </div>
                         </td>
