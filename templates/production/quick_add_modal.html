@@ -13,7 +13,7 @@
     <form hx-post="{% url 'production:save_entry' %}" 
           hx-target="#production-spreadsheet-wrapper"
           hx-swap="none"
-          @htmx:after-request="if (event.detail.successful) { open = false; window.location.reload() }">
+          @htmx:after-request="if (event.detail.successful && event.detail.elt === $el) { open = false; window.location.reload() }">
         {% csrf_token %}
         
         <div class="modal-form-body p-0">
