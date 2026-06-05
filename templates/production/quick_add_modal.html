@@ -1,11 +1,11 @@
-<div class="modal-form-body" x-data="initQuickAdd()">
+<div class="p-6" x-data="initQuickAdd()">
     <!-- Header -->
-    <div class="modal-header-box">
+    <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
         <div>
-            <h3 class="font-display">Quick Work Entry</h3>
+            <h3 class="font-display text-xl font-bold text-slate-900">Quick Work Entry</h3>
             <p class="text-slate-500 text-[11px] font-bold uppercase tracking-wider">Record production for any active lot</p>
         </div>
-        <button @click="open = false" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all btn-press">
+        <button @click="open = false" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all btn-press text-sm">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
     </div>
@@ -16,12 +16,12 @@
           @htmx:after-request="if (event.detail.successful && event.detail.elt === $el) { open = false; window.location.reload() }">
         {% csrf_token %}
         
-        <div class="modal-form-body p-0">
+        <div class="flex flex-col gap-5">
             <!-- Row 1: Lot & Color -->
-            <div class="modal-grid grid-2">
-                <div class="field-group">
-                    <label class="modal-label">Select Lot</label>
-                    <select name="lot_id" x-model="lotId" @change="fetchLot()" required class="modal-select">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Select Lot</label>
+                    <select name="lot_id" x-model="lotId" @change="fetchLot()" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
                         <option value="">Choose Lot...</option>
                         {% for lot in lots %}
                         <option value="{{ lot.id }}">{{ lot.lot_number }} ({{ lot.party.name }})</option>
@@ -29,30 +29,25 @@
                     </select>
                 </div>
 
-                <div class="field-group">
-                    <label class="modal-label">Color Breakdown</label>
-                    <template x-if="colors.length > 0">
-                        <select name="color_id" x-model="colorId" class="modal-select">
-                            <option value="0">General / No Color</option>
-                            <template x-for="color in colors" :key="color.id">
-                                <option :value="color.id" x-text="`${color.name} (${color.pieces} pcs)`"></option>
-                            </template>
-                        </select>
-                    </template>
-                    <template x-if="colors.length === 0">
-                        <div class="no-color-box-premium">
-                            <input type="hidden" name="color_id" value="0">
-                            <p>Select a lot first</p>
-                        </div>
-                    </template>
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Color Breakdown</label>
+                    <select name="color_id" x-model="colorId" :disabled="!lotId" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
+                        <option value="0">General / No Color</option>
+                        <template x-if="lotId && colors.length > 0">
+                            <option value="all" class="font-bold text-primary italic">Assign All Colors</option>
+                        </template>
+                        <template x-for="color in colors" :key="color.id">
+                            <option :value="color.id" x-text="color.name + ' (' + color.pieces + ' pcs)'"></option>
+                        </template>
+                    </select>
                 </div>
             </div>
 
             <!-- Row 2: Operation & Worker -->
-            <div class="modal-grid grid-2">
-                <div class="field-group">
-                    <label class="modal-label">Operation</label>
-                    <select name="op_id" x-model="opId" required class="modal-select">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Operation</label>
+                    <select name="op_id" x-model="opId" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
                         <option value="">Choose Operation...</option>
                         {% for op in operations %}
                         <option value="{{ op.id }}">{{ op.name }}</option>
@@ -60,13 +55,13 @@
                     </select>
                 </div>
 
-                <div class="field-group">
-                    <label class="modal-label">Worker / Labor</label>
-                    <select name="labor_id" x-model="workerId" required class="modal-select"
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Worker / Labor</label>
+                    <select name="labor_id" x-model="workerId" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all"
                             hx-get="{% url 'production:get_last_rate' %}"
                             hx-trigger="change"
                             hx-swap="none"
-                            hx-on::after-request="document.getElementById('rate-quick').value = event.detail.xhr.responseText"
+                            @htmx:after-request="rate = event.detail.xhr.responseText"
                             hx-include="[name='op_id']"
                             hx-vals='js:{labor_id: event.target.value}'>
                         <option value="">Choose Worker...</option>
@@ -77,46 +72,48 @@
                 </div>
             </div>
 
-            <!-- Row 3: Numbers -->
-            <div class="modal-grid grid-3">
-                <div class="field-group">
+            <!-- Row 3: Numbers (Reordered: Size -> Pieces -> Rate) -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Size</label>
+                    <input type="text" name="size" placeholder="e.g. 28" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300">
+                </div>
+                <div class="flex flex-col gap-1.5">
                     <div class="flex items-center justify-between px-1">
-                        <label class="modal-label">Pieces</label>
-                        <span class="capacity-badge" :class="isOver ? 'error' : ''">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pieces</label>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-md" :class="isOver ? 'bg-rose-100 text-rose-500' : ''">
                             Tot: <span x-text="limitData.total"></span> | All: <span x-text="limitData.allotted"></span>
                         </span>
                     </div>
-                    <input type="number" name="pieces" x-model="pieces" @input="touched = true" placeholder="0" required 
-                           class="modal-input" :class="(touched && isOver) ? 'input-error-premium' : ''">
+                    <input type="number" name="pieces" x-model="pieces" @input="touched = true" placeholder="Pieces" required 
+                           class="w-full bg-white border rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 outline-none transition-all" 
+                           :class="isOver ? 'border-rose-500 ring-rose-500/10' : 'border-slate-200 focus:ring-primary/10'"
+                           :readonly="colorId === 'all'">
                     <p x-show="touched && isOver" class="text-[9px] font-bold text-rose-500 mt-1 ml-1 animate-pulse">⚠️ Exceeds capacity!</p>
                 </div>
-                <div class="field-group">
-                    <label class="modal-label">Size</label>
-                    <input type="text" name="size" placeholder="e.g. 28" class="modal-input">
-                </div>
-                <div class="field-group">
-                    <label class="modal-label">Rate (₹)</label>
-                    <input type="number" step="0.01" name="rate" id="rate-quick" placeholder="0.00" required class="modal-input">
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Rate (₹)</label>
+                    <input type="number" step="0.01" name="rate" x-model="rate" placeholder="0.00" required 
+                           class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-300">
                 </div>
             </div>
 
             <!-- Row 4: Meta -->
-            <div class="modal-grid grid-2">
-                <div class="field-group">
-                    <label class="modal-label">Work Date</label>
-                    <input type="date" name="work_date" value="{% now 'Y-m-d' %}" required class="modal-input">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Work Date</label>
+                    <input type="date" name="work_date" value="{% now 'Y-m-d' %}" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
                 </div>
-                <div class="field-group">
-                    <label class="modal-label">Remarks</label>
-                    <textarea name="remarks" placeholder="Notes..." class="modal-textarea"></textarea>
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Remarks</label>
+                    <textarea name="remarks" placeholder="Notes..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all h-[42px] resize-none placeholder:text-slate-300"></textarea>
                 </div>
             </div>
 
             <!-- Footer -->
             <div class="flex items-center gap-3 mt-4">
                 <button type="button" @click="open = false" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-all btn-press text-sm">Cancel</button>
-                <button type="submit" :disabled="!canSave" class="btn-premium-save flex-[2] text-sm">
-                    <span class="htmx-indicator animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full"></span>
+                <button type="submit" :disabled="!canSave" class="flex-[2] bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl shadow-lg transition-all btn-press text-sm">
                     Save Production
                 </button>
             </div>

@@ -4,6 +4,8 @@
 {% block title %}Production Table | Jeans ERP{% endblock %}
 {% block header_title %}Production Spreadsheet{% endblock %}
 
+{% block content_class %}overflow-hidden p-4{% endblock %}
+
 {% block main_content %}
 <div id="production-spreadsheet-wrapper" class="surface-card rounded-2xl overflow-hidden flex flex-col h-full shadow-premium">
     <!-- Filter Bar -->
@@ -203,6 +205,75 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <!-- Pagination Footer (always visible) -->
+    <div class="p-4 border-t border-slate-100 bg-slate-50/30 flex items-center justify-between flex-shrink-0">
+        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            {% if page_obj.paginator.count > 0 %}
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} Lots
+            {% else %}
+                No lots found
+            {% endif %}
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="flex items-center gap-1">
+            {% if page_obj.has_previous %}
+            <!-- First Page -->
+            <button hx-get="{% url 'production:table' %}?page=1&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+                    hx-target="#production-spreadsheet-wrapper"
+                    hx-push-url="true"
+                    title="First Page"
+                    class="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-primary transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7M18 19l-7-7 7-7"></path></svg>
+            </button>
+            <!-- Previous Page -->
+            <button hx-get="{% url 'production:table' %}?page={{ page_obj.previous_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+                    hx-target="#production-spreadsheet-wrapper"
+                    hx-push-url="true"
+                    title="Previous Page"
+                    class="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-primary transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            {% endif %}
+
+            <!-- Page Numbers -->
+            <div class="flex items-center gap-1 px-2">
+                {% for n in page_obj.paginator.page_range %}
+                    {% if n == page_obj.number %}
+                    <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white text-[11px] font-bold shadow-lg shadow-primary/20">{{ n }}</span>
+                    {% elif n > page_obj.number|add:'-3' and n < page_obj.number|add:'3' %}
+                    <button hx-get="{% url 'production:table' %}?page={{ n }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+                            hx-target="#production-spreadsheet-wrapper"
+                            hx-push-url="true"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-sm text-slate-500 text-[11px] font-bold transition-all">{{ n }}</button>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if page_obj.has_next %}
+            <!-- Next Page -->
+            <button hx-get="{% url 'production:table' %}?page={{ page_obj.next_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+                    hx-target="#production-spreadsheet-wrapper"
+                    hx-push-url="true"
+                    title="Next Page"
+                    class="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-primary transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+            <!-- Last Page -->
+            <button hx-get="{% url 'production:table' %}?page={{ page_obj.paginator.num_pages }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+                    hx-target="#production-spreadsheet-wrapper"
+                    hx-push-url="true"
+                    title="Last Page"
+                    class="p-2 hover:bg-white hover:shadow-sm rounded-lg text-slate-400 hover:text-primary transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M6 5l7 7-7 7"></path></svg>
+            </button>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="text-[10px] text-slate-300 font-bold uppercase tracking-widest">Page 1 of 1</div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

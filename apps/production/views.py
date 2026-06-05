@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Q, Sum, IntegerField
 from django.db.models.functions import Cast
+from django.core.paginator import Paginator
 from apps.operations.models import Operation, SubOperation
 from apps.core.models import Lot, LotColor
 from apps.production.models import WorkEntry
@@ -17,6 +18,7 @@ def production_table(request):
     sort = request.GET.get('sort', '-created_at')
     search = request.GET.get('search', '')
     status = request.GET.get('status', 'active')
+    page = request.GET.get('page', 1)
     
     ops = Operation.objects.filter(active=True).prefetch_related('sub_operations')
     
@@ -50,7 +52,9 @@ def production_table(request):
     else:
         lots_qs = lots_qs.order_by('-created_at')
         
-    lots = lots_qs
+    # Paginate
+    paginator = Paginator(lots_qs, 20)
+    page_obj = paginator.get_page(page)
     
     # Build Header Structure
     header_config = []
@@ -69,8 +73,8 @@ def production_table(request):
                 'colspan': 1
             })
 
-    # Optimization: Filter entries only for the lots being shown
-    lot_ids = [l.id for l in lots]
+    # Optimization: Filter entries only for the lots being shown on this page
+    lot_ids = [l.id for l in page_obj]
     entries_qs = WorkEntry.objects.filter(lot_id__in=lot_ids).select_related('labor', 'lot_color')
     
     # Mapping structure: entries[lot_id][op_id][sub_op_id or 0][color_id or 0] = entry_object
@@ -92,7 +96,8 @@ def production_table(request):
 
     context = {
         'header_config': header_config,
-        'lots': lots,
+        'lots': page_obj,
+        'page_obj': page_obj,
         'entries_map': entries_map,
         'current_sort': sort,
         'search': search,

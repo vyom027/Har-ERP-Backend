@@ -1,10 +1,10 @@
-<div class="modal-form-body" x-cloak 
-     x-data="initWorkEntry('{{ color_limits_b64 }}', '{{ initial_color_id|default:'0' }}', {{ existing_entry.pieces|default:0 }}, {{ existing_entry.rate|default:0 }})">
+<div class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200" x-cloak 
+     x-data="initWorkEntry('{{ color_limits_b64 }}', '{{ initial_color_id|default:'0' }}', '{{ existing_entry.pieces|default:'' }}', '{{ existing_entry.rate|default:'' }}')">
     
-    <div class="modal-header-box">
+    <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
         <div>
             <div class="flex items-center gap-2 mb-1">
-                <h3 class="font-display">Work Entry</h3>
+                <h3 class="font-display text-xl font-bold text-slate-900">Work Entry</h3>
                 {% if existing_entry %}
                 <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-bold rounded-full uppercase tracking-widest">Editing</span>
                 {% else %}
@@ -39,28 +39,29 @@
         <input type="hidden" name="sub_op_id" value="{{ sub_operation.id|default:0 }}">
         <input type="hidden" name="entry_id" value="{{ existing_entry.id|default:'' }}">
 
-        <div class="modal-form-body p-0">
+        <div class="flex flex-col gap-5">
             <!-- Row 1: Context -->
-            <div class="modal-grid grid-2">
-                <div class="field-group">
-                    <label class="modal-label">Color Breakdown</label>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Color Breakdown</label>
                     {% if lot.colors.all %}
-                    <select name="color_id" x-model="colorId" required class="modal-select">
+                    <select name="color_id" x-model="colorId" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
                         <option value="0">General / No Color</option>
+                        {% if not existing_entry %}
+                        <option value="all" class="font-bold text-primary italic">Assign All Colors</option>
+                        {% endif %}
                         {% for color in lot.colors.all %}
                         <option value="{{ color.id }}">{{ color.color_name }}</option>
                         {% endfor %}
                     </select>
                     {% else %}
                     <input type="hidden" name="color_id" value="0">
-                    <div class="no-color-box-premium">
-                        Standard Lot
-                    </div>
+                    <div class="h-[42px] flex items-center px-4 bg-slate-100 rounded-xl border border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Standard Lot</div>
                     {% endif %}
                 </div>
-                <div class="field-group">
-                    <label class="modal-label">Select Worker</label>
-                    <select name="labor_id" required class="modal-select">
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Select Worker</label>
+                    <select name="labor_id" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
                         <option value="">Choose worker...</option>
                         {% for labor in labors %}
                         <option value="{{ labor.id }}" {% if existing_entry.labor_id == labor.id %}selected{% endif %}>{{ labor.name }}</option>
@@ -69,44 +70,47 @@
                 </div>
             </div>
 
-            <!-- Row 2: Numbers -->
-            <div class="modal-grid grid-3">
-                <div class="field-group">
-                    <label class="modal-label">Size</label>
-                    <input type="text" name="size" value="{{ existing_entry.size|default:'' }}" placeholder="e.g. 28" class="modal-input">
+            <!-- Row 2: Numbers (Reordered: Size -> Pieces -> Rate) -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Size</label>
+                    <input type="text" name="size" value="{{ existing_entry.size|default:'' }}" placeholder="e.g. 28" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
                 </div>
-                <div class="field-group">
+                <div class="flex flex-col gap-1.5">
                     <div class="flex items-center justify-between px-1">
-                        <label class="modal-label">Pieces</label>
-                        <span class="capacity-badge" :class="isOver ? 'error' : ''">
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pieces</label>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-md" :class="isOver ? 'bg-rose-100 text-rose-500' : ''">
                             Tot: <span x-text="limitData.total"></span> | All: <span x-text="limitData.allotted"></span>
                         </span>
                     </div>
-                    <input type="number" name="pieces" x-model="pieces" @input="touchedP = true" placeholder="0" required 
-                           class="modal-input" :class="(touchedP && isOver) ? 'input-error-premium' : ''">
+                    <input type="number" name="pieces" x-model="pieces" @input="touchedP = true" placeholder="Enter pieces" required 
+                           class="w-full bg-white border rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 outline-none transition-all" 
+                           :class="(touchedP && isOver) ? 'border-rose-500 ring-rose-500/10' : 'border-slate-200 focus:ring-primary/10'"
+                           :readonly="colorId === 'all'">
+                    <p x-show="colorId === 'all'" class="text-[9px] font-bold text-primary mt-1 ml-1 uppercase">Auto-calculated</p>
                     <p x-show="touchedP && isOver" class="text-[9px] font-bold text-rose-500 mt-1 ml-1 animate-pulse">⚠️ Exceeds capacity!</p>
                 </div>
                 <div class="field-group">
-                    <label class="modal-label">Rate (₹)</label>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Rate (₹)</label>
                     <input type="number" step="0.01" name="rate" x-model="rate" @input="touchedR = true" placeholder="0.00" required 
-                           class="modal-input">
+                           class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
                 </div>
             </div>
 
             <!-- Row 3: Meta -->
-            <div class="modal-grid grid-2">
-                <div class="field-group">
-                    <label class="modal-label">Work Date</label>
-                    <input type="date" name="work_date" value="{% if existing_entry %}{{ existing_entry.work_date|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}" required class="modal-input">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Work Date</label>
+                    <input type="date" name="work_date" value="{% if existing_entry %}{{ existing_entry.work_date|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">
                 </div>
-                <div class="field-group">
-                    <label class="modal-label">Remarks</label>
-                    <textarea name="remarks" placeholder="Notes..." class="modal-textarea">{{ existing_entry.remarks|default:'' }}</textarea>
+                <div class="flex flex-col gap-1.5">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Remarks</label>
+                    <textarea name="remarks" placeholder="Notes..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all h-[42px] resize-none">{{ existing_entry.remarks|default:'' }}</textarea>
                 </div>
             </div>
 
             {% if existing_entry %}
-            <div class="flex items-center justify-between p-3 bg-emerald-50/60 border border-emerald-100/80 rounded-xl">
+            <div class="flex items-center justify-between p-3 bg-emerald-50/60 border border-emerald-100 rounded-xl">
                 <div class="flex items-center gap-2">
                     <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
                     <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">Currently Saved</span>
@@ -118,21 +122,20 @@
             {% endif %}
 
             <div class="flex items-center gap-3 mt-4">
-                <button type="button" @click="open = false" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-all btn-press text-sm">
-                    Cancel
-                </button>
+                <button type="button" @click="open = false" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-all btn-press text-sm">Cancel</button>
+                {% if existing_entry %}
                 <button type="button" 
                         hx-post="{% url 'production:delete_entry' %}"
                         hx-target="#cell-{{ lot.id }}-{{ operation.id }}-{{ sub_operation.id|default:0 }}"
                         hx-include="[name='entry_id']"
                         hx-on::after-request="$dispatch('close-modal')"
-                        class="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all btn-press group"
+                        class="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all btn-press"
                         title="Delete Entry">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
-                <button type="submit" :disabled="!canSave" class="btn-premium-save flex-1 text-sm">
-                    <span class="htmx-indicator animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full"></span>
-                    Save Work
+                {% endif %}
+                <button type="submit" :disabled="!canSave" class="flex-[2] bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl shadow-lg transition-all btn-press text-sm">
+                    Save Production
                 </button>
             </div>
         </div>
