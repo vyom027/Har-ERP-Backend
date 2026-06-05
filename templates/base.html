@@ -33,7 +33,6 @@
             }
         };
 
-        // Make functions globally available
         window.parseB64 = function(b64) {
             try { return JSON.parse(atob(b64.trim().replace(/^['"](.*)['"]$/, '$1'))); } catch(e) { return {}; }
         };
@@ -42,16 +41,14 @@
             return {
                 lotId: '', opId: '', colorId: '0', workerId: '', pieces: '', rate: '', touched: false, colors: [], limits: {},
                 async fetchLot() {
-                    console.log('Fetching lot:', this.lotId);
                     if (!this.lotId) { this.colors = []; this.limits = {}; this.colorId = '0'; return; }
                     try {
                         let res = await fetch(`/production/get-lot-data/?lot_id=${this.lotId}`);
                         let data = await res.json();
-                        console.log('Lot data received:', data);
                         this.colors = data.colors || []; 
                         this.limits = data.limits || {}; 
                         this.colorId = '0';
-                    } catch(e) { console.error('Error fetching lot data:', e); }
+                    } catch(e) { console.error('Error:', e); }
                 },
                 get limitData() {
                     if (!this.opId || !this.limits[this.opId]) return { total: 0, allotted: 0 };
@@ -69,8 +66,7 @@
                 },
                 get isOver() { 
                     if (this.colorId === 'all') return false;
-                    let remaining = (parseInt(this.limitData.total) || 0) - (parseInt(this.limitData.allotted) || 0);
-                    return (parseInt(this.pieces) || 0) > remaining;
+                    return (parseInt(this.pieces) || 0) > (parseInt(this.limitData.total) - parseInt(this.limitData.allotted));
                 },
                 get canSave() { return this.lotId && this.opId && this.workerId && (parseInt(this.pieces) > 0) && (parseFloat(this.rate) > 0) && !this.isOver; }
             };
@@ -94,10 +90,27 @@
                 },
                 get isOver() {
                     if (this.colorId === 'all') return false;
-                    let remaining = (parseInt(this.limitData.total) || 0) - (parseInt(this.limitData.allotted) || 0);
-                    return (parseInt(this.pieces) || 0) > remaining;
+                    return (parseInt(this.pieces) || 0) > (parseInt(this.limitData.total) - parseInt(this.limitData.allotted));
                 },
                 get canSave() { return (parseInt(this.pieces) > 0) && (parseFloat(this.rate) > 0) && !this.isOver; }
+            };
+        };
+
+        window.initSampleForm = function(initialColorsJson, initialRate) {
+            let data = [];
+            try {
+                const decoded = initialColorsJson.replace(/&quot;/g, '"');
+                data = JSON.parse(decoded || '[]');
+            } catch(e) { console.error('Parse error:', e); }
+
+            return {
+                colors: data.length > 0 ? data : [{name: '', pieces: 1}],
+                rate: initialRate || '',
+                addColor() { this.colors.push({name: '', pieces: 1}); },
+                removeColor(index) { if (this.colors.length > 1) this.colors.splice(index, 1); },
+                get totalPcs() {
+                    return this.colors.reduce((sum, c) => sum + (parseInt(c.pieces) || 0), 0);
+                }
             };
         };
     </script>
@@ -114,6 +127,7 @@
             <nav class="flex-1 px-4 space-y-1.5 mt-4 overflow-y-auto custom-scrollbar">
                 <a href="{% url 'dashboard:home' %}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-medium {% if request.resolver_match.app_name == 'dashboard' %}active text-white{% endif %}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg><span>Dashboard</span></a>
                 <a href="{% url 'production:table' %}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-medium {% if request.resolver_match.app_name == 'production' %}active text-white{% endif %}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg><span>Production</span></a>
+                <a href="{% url 'samples:list' %}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-medium {% if request.resolver_match.app_name == 'samples' %}active text-white{% endif %}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.183.394l-1.43.904a2 2 0 01-2.927-1.347l-.146-.638A2 2 0 012.33 12.4l.208-.064a2 2 0 001.353-1.32l.243-.65a2 2 0 012.656-1.144l.65.243a2 2 0 002.32-.51l.487-.604a2 2 0 013.111 0l.487.604a2 2 0 002.32.51l.65-.243a2 2 0 012.656 1.144l.243.65a2 2 0 001.353 1.32l.208.064a2 2 0 011.393 2.107l-.146.638a2 2 0 01-2.927 1.347l-1.43-.904z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9a2 2 0 11-4 0 2 2 0 014 0z"></path></svg><span>Samples</span></a>
                 <a href="{% url 'core:lot_list' %}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-medium {% if request.resolver_match.url_name == 'lot_list' or request.resolver_match.url_name == 'lot_detail' %}active text-white{% endif %}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg><span>Lots</span></a>
                 <a href="{% url 'core:party_list' %}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-medium {% if request.resolver_match.url_name == 'party_list' %}active text-white{% endif %}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg><span>Parties</span></a>
                 <a href="{% url 'labor:labor_list' %}" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 font-medium {% if request.resolver_match.url_name == 'labor_list' or request.resolver_match.url_name == 'labor_profile' %}active text-white{% endif %}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg><span>Labor</span></a>
@@ -152,7 +166,8 @@
 
     <script>
         document.body.addEventListener('htmx:afterSwap', function (evt) {
-            if (evt.detail.target.id === 'modal-content' || evt.detail.target.closest('#table-container')) {
+            // Remove the initTree call for modal-content, Alpine auto-detects x-data
+            if (evt.detail.target.id !== 'modal-content' && evt.detail.target.closest('#table-container')) {
                 if (window.Alpine) {
                     Alpine.initTree(evt.detail.target);
                 }

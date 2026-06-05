@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "apps.production",
     "apps.reports",
     "apps.dashboard",
+    "apps.samples",
 ]
 
 MIDDLEWARE = [

@@ -24,20 +24,27 @@ def get_ledger_data(labor, start_date=None, end_date=None):
     # Calculate Opening Balance
     opening_earned = 0
     opening_paid = 0
+    from apps.samples.models import Sample
+    
     if start_date:
-        opening_earned = WorkEntry.objects.filter(labor=labor, work_date__lt=start_date).aggregate(total=Sum('total_amount'))['total'] or 0
+        prod_earned = WorkEntry.objects.filter(labor=labor, work_date__lt=start_date).aggregate(total=Sum('total_amount'))['total'] or 0
+        samp_earned = Sample.objects.filter(labor=labor, work_date__lt=start_date).aggregate(total=Sum('total_amount'))['total'] or 0
+        opening_earned = prod_earned + samp_earned
         opening_paid = Payment.objects.filter(labor=labor, payment_date__lt=start_date).aggregate(total=Sum('amount'))['total'] or 0
     
     opening_balance = opening_earned - opening_paid
 
     work_qs = WorkEntry.objects.filter(labor=labor).select_related('lot', 'operation')
+    sample_qs = Sample.objects.filter(labor=labor).select_related('party')
     payment_qs = Payment.objects.filter(labor=labor)
     
     if start_date:
         work_qs = work_qs.filter(work_date__gte=start_date)
+        sample_qs = sample_qs.filter(work_date__gte=start_date)
         payment_qs = payment_qs.filter(payment_date__gte=start_date)
     if end_date:
         work_qs = work_qs.filter(work_date__lte=end_date)
+        sample_qs = sample_qs.filter(work_date__lte=end_date)
         payment_qs = payment_qs.filter(payment_date__lte=end_date)
         
     ledger = []
@@ -55,6 +62,18 @@ def get_ledger_data(labor, start_date=None, end_date=None):
             'lot_number': w.lot.lot_number,
             'pieces': w.pieces,
             'rate': w.rate
+        })
+    for s in sample_qs:
+        total_credit += s.total_amount
+        ledger.append({
+            'date': s.work_date,
+            'type': 'Sample',
+            'details': f"Sample: {s.sample_name} / {s.party.name}",
+            'credit': s.total_amount,
+            'debit': 0,
+            'lot_number': 'SAMPLE',
+            'pieces': s.total_pieces,
+            'rate': s.rate
         })
     for p in payment_qs:
         total_debit += p.amount

@@ -15,10 +15,11 @@ class Labor(models.Model):
 
     @property
     def total_earned(self):
-        # Using a string to avoid circular import if needed, 
-        # but here we can just import inside the method.
         from apps.production.models import WorkEntry
-        return WorkEntry.objects.filter(labor=self).aggregate(total=Sum('total_amount'))['total'] or 0
+        from apps.samples.models import Sample
+        production_earned = WorkEntry.objects.filter(labor=self).aggregate(total=Sum('total_amount'))['total'] or 0
+        samples_earned = Sample.objects.filter(labor=self).aggregate(total=Sum('total_amount'))['total'] or 0
+        return production_earned + samples_earned
 
     @property
     def total_paid(self):

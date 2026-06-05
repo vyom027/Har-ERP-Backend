@@ -1,0 +1,81 @@
+<table class="w-full border-collapse text-left">
+    <thead>
+        <tr class="bg-slate-50 border-b border-slate-100">
+            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date</th>
+            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sample / Item</th>
+            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Party</th>
+            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Labor</th>
+            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Color Breakdown</th>
+            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Total Pcs</th>
+            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Rate</th>
+            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Total Amount</th>
+            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Actions</th>
+        </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-50">
+        {% for sample in samples %}
+        <tr class="hover:bg-slate-50/50 transition-colors group">
+            <td class="px-6 py-4 text-xs font-semibold text-slate-600">{{ sample.work_date|date:"d M, Y" }}</td>
+            <td class="px-6 py-4">
+                <div class="text-sm font-bold text-slate-900">{{ sample.sample_name }}</div>
+                {% if sample.remarks %}
+                <div class="text-[10px] text-slate-400 italic truncate max-w-[150px]">{{ sample.remarks }}</div>
+                {% endif %}
+            </td>
+            <td class="px-6 py-4 text-sm font-semibold text-slate-700">{{ sample.party.name }}</td>
+            <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-primary border border-slate-200">
+                        {{ sample.labor.name.0|upper }}
+                    </div>
+                    <div class="text-sm font-semibold text-slate-700">{{ sample.labor.name }}</div>
+                </div>
+            </td>
+            <td class="px-6 py-4">
+                <div class="flex flex-wrap gap-1 max-w-[200px]">
+                    {% for sc in sample.colors.all %}
+                    <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-bold rounded border border-slate-200 uppercase">
+                        {{ sc.color_name }}: {{ sc.pieces }}
+                    </span>
+                    {% empty %}
+                    <span class="text-slate-300 text-[10px] italic">No breakdown</span>
+                    {% endfor %}
+                </div>
+            </td>
+            <td class="px-6 py-4 text-center text-sm font-bold text-slate-900">{{ sample.total_pieces }}</td>
+            <td class="px-6 py-4 text-right text-sm font-semibold text-slate-600">₹{{ sample.rate }}</td>
+            <td class="px-6 py-4 text-right">
+                <div class="text-sm font-bold text-primary">₹{{ sample.total_amount }}</div>
+            </td>
+            <td class="px-6 py-4 text-center">
+                <div class="flex items-center justify-center gap-1">
+                    <button hx-get="{% url 'samples:sample_modal' %}?sample_id={{ sample.id }}"
+                            hx-target="#modal-content"
+                            @click="$dispatch('open-modal')"
+                            class="p-2 text-slate-400 hover:text-primary hover:bg-sky-50 rounded-xl transition-all btn-press"
+                            title="Edit Sample">
+                        <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </button>
+                    <button hx-post="{% url 'samples:delete_sample' %}"
+                            hx-vals='{"sample_id": "{{ sample.id }}"}'
+                            hx-confirm="Are you sure you want to delete this sample record?"
+                            hx-swap="none"
+                            class="p-2 text-slate-400 hover:text-rose-50 hover:bg-rose-50 rounded-xl transition-all btn-press"
+                            title="Delete Sample">
+                        <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9" class="px-6 py-12 text-center text-slate-400">
+                <div class="flex flex-col items-center gap-2">
+                    <svg class="w-12 h-12 text-slate-200" width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    <p class="font-medium text-sm">No sample records found</p>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

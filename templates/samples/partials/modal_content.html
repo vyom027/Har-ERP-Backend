@@ -1,0 +1,147 @@
+<style>
+    .modal-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .modal-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    @media (max-width: 640px) { .modal-grid-2, .modal-grid-3 { grid-template-columns: 1fr; } }
+    .field-group { display: flex; flex-direction: column; gap: 0.375rem; }
+    .modal-label { display: block; font-size: 0.625rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-left: 0.25rem; margin-bottom: 0.375rem; }
+    .modal-input, .modal-select, .modal-textarea { width: 100%; background: rgba(248, 250, 252, 0.8); border: 1.5px solid rgba(226, 232, 240, 0.8); border-radius: 0.75rem; padding: 0.625rem 1rem; color: #0f172a; font-size: 0.875rem; font-weight: 600; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+    .modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
+    .modal-textarea { resize: none; height: 2.75rem; }
+    .modal-header-box { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .capacity-badge { font-size: 9px; font-weight: 700; color: #94a3b8; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; }
+    .btn-save { background: #0ea5e9; color: white; font-weight: 700; padding: 0.75rem; border-radius: 0.75rem; border: none; cursor: pointer; transition: background 0.15s; }
+    .btn-save:hover { background: #0284c7; }
+    .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-cancel { background: #f1f5f9; color: #374151; font-weight: 700; padding: 0.75rem; border-radius: 0.75rem; border: none; cursor: pointer; transition: background 0.15s; }
+    .btn-cancel:hover { background: #e2e8f0; }
+    .modal-close-btn { padding: 0.5rem; color: #94a3b8; border-radius: 0.75rem; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .modal-close-btn:hover { background: #f1f5f9; color: #475569; }
+</style>
+
+<div class="bg-white p-6" x-data="initSampleForm('{{ existing_colors_json|safe|default:'[]' }}', '{{ existing_sample.rate|default:'' }}')">
+    <!-- Header -->
+    <div class="modal-header-box">
+        <div>
+            <h3 class="font-display text-xl font-bold text-slate-900" style="font-family: 'Outfit', sans-serif;">{% if existing_sample %}Edit{% else %}Add{% endif %} Sample</h3>
+            <p class="text-slate-500 text-[11px] font-bold uppercase tracking-wider">Record work with multi-color breakdown</p>
+        </div>
+        <button @click="open = false" class="modal-close-btn">
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+
+    <form hx-post="{% url 'samples:save_sample' %}" 
+          hx-swap="none"
+          @htmx:after-request="if (event.detail.successful) { $dispatch('close-modal') }">
+        {% csrf_token %}
+        <input type="hidden" name="sample_id" value="{{ existing_sample.id|default:'' }}">
+        
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Row 1: Party & Sample Name -->
+            <div class="modal-grid-2">
+                <div class="field-group">
+                    <label class="modal-label">Select Party</label>
+                    <select name="party_id" required class="modal-select">
+                        <option value="">Choose Party...</option>
+                        {% for party in parties %}
+                        <option value="{{ party.id }}" {% if existing_sample.party_id == party.id %}selected{% endif %}>{{ party.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label class="modal-label">Sample Name/Code</label>
+                    <input type="text" name="sample_name" value="{{ existing_sample.sample_name|default:'' }}" placeholder="e.g. Slim Basic #01" required 
+                           class="modal-input">
+                </div>
+            </div>
+
+            <!-- Row 2: Labor & Rate & Date -->
+            <div class="modal-grid-3">
+                <div class="field-group">
+                    <label class="modal-label">Labor</label>
+                    <select name="labor_id" required class="modal-select">
+                        <option value="">Choose Labor...</option>
+                        {% for labor in labors %}
+                        <option value="{{ labor.id }}" {% if existing_sample.labor_id == labor.id %}selected{% endif %}>{{ labor.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label class="modal-label">Rate (₹)</label>
+                    <input type="number" step="0.01" name="rate" x-model="rate" required placeholder="0.00" 
+                           class="modal-input">
+                </div>
+                <div class="field-group">
+                    <label class="modal-label">Date</label>
+                    <input type="date" name="work_date" value="{% if existing_sample %}{{ existing_sample.work_date|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}" required 
+                           class="modal-input">
+                </div>
+            </div>
+
+            <!-- Color Breakdown Section -->
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 0.25rem;">
+                    <label class="modal-label" style="margin: 0;">Color Breakdown</label>
+                    <span class="capacity-badge">
+                        Total Pcs: <span x-text="totalPcs"></span>
+                    </span>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <template x-for="(color, index) in colors" :key="index">
+                        <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 0.5rem;">
+                            <div style="grid-column: span 7;">
+                                <input type="text" name="color_names[]" x-model="color.name" placeholder="Color name..." required
+                                       class="modal-input">
+                            </div>
+                            <div style="grid-column: span 3;">
+                                <input type="number" name="color_pieces[]" x-model="color.pieces" placeholder="Pcs" required
+                                       class="modal-input" style="text-align: center;">
+                            </div>
+                            <div style="grid-column: span 2; display: flex; align-items: center; justify-content: center;">
+                                <button type="button" @click="removeColor(index)" 
+                                        :style="colors.length > 1 ? 'color: #94a3b8;' : 'color: #e2e8f0; cursor: not-allowed;'"
+                                        :disabled="colors.length <= 1"
+                                        class="modal-close-btn">
+                                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <button type="button" @click="addColor()" 
+                        style="width: 100%; py: 0.5rem; border: 2px dashed #e2e8f0; border-radius: 0.75rem; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: transparent; cursor: pointer; height: 40px;"
+                        onmouseover="this.style.borderColor='#0ea5e9'; this.style.color='#0ea5e9'; this.style.background='rgba(14, 165, 233, 0.05)';"
+                        onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#94a3b8'; this.style.background='transparent';">
+                    <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Another Color
+                </button>
+            </div>
+
+            <!-- Remarks -->
+            <div class="field-group">
+                <label class="modal-label">Remarks / Feedback</label>
+                <textarea name="remarks" placeholder="Notes about fit, fabric, or changes..." 
+                          class="modal-textarea" style="height: 5rem;">{{ existing_sample.remarks|default:'' }}</textarea>
+            </div>
+
+            <!-- Footer -->
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" @click="open = false" class="btn-cancel" style="flex: 1; font-size: 0.875rem;">Cancel</button>
+                {% if existing_sample %}
+                <button type="button" 
+                        hx-post="{% url 'samples:delete_sample' %}"
+                        hx-include="[name='sample_id']"
+                        hx-confirm="Delete this sample record?"
+                        class="modal-close-btn" style="color: #ef4444; padding: 0.75rem;">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+                {% endif %}
+                <button type="submit" class="btn-save" style="flex: 2; font-size: 0.875rem;">
+                    Save Sample Entry
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
