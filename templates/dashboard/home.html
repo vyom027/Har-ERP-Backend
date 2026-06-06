@@ -21,11 +21,11 @@
     </a>
     <div class="surface-card p-5 rounded-2xl border-l-4 border-emerald-500">
         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Labor Cost</p>
-        <h3 class="text-xl font-bold text-slate-900">₹{{ stats.total_expense }}</h3>
+        <h3 class="text-xl font-bold text-slate-900">₹{{ stats.total_expense|floatformat:2 }}</h3>
     </div>
     <div class="surface-card p-5 rounded-2xl border-l-4 border-rose-500">
         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pending Payments</p>
-        <h3 class="text-xl font-bold text-slate-900">₹{{ stats.pending_payments }}</h3>
+        <h3 class="text-xl font-bold text-slate-900">₹{{ stats.pending_payments|floatformat:2 }}</h3>
     </div>
 </div>
 
@@ -84,7 +84,7 @@
                             </span>
                         </td>
                         <td class="py-3 text-slate-600">{{ entry.pieces }}</td>
-                        <td class="py-3 text-slate-900 font-bold text-right">₹{{ entry.total_amount }}</td>
+                        <td class="py-3 text-slate-900 font-bold text-right">₹{{ entry.total_amount|floatformat:2 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
