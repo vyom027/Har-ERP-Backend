@@ -160,16 +160,17 @@
     <!-- Global Modal Container -->
     <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]" x-data="{ open: false }" x-show="open" x-cloak @open-modal.window="open = true" @close-modal.window="open = false" @keydown.window.escape="open = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
         <div class="bg-white max-w-2xl w-full mx-4 rounded-2xl shadow-2xl overflow-hidden border border-slate-200" @click.away="open = false" x-show="open" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="scale-95 opacity-0" x-transition:enter-end="scale-100 opacity-100">
-            <div id="modal-content"><div class="flex items-center justify-center p-12 htmx-indicator"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div></div>
+            <div id="modal-container-inner" hx-target="this">
+                <div id="modal-content"><div class="flex items-center justify-center p-12 htmx-indicator"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div></div>
+            </div>
         </div>
     </div>
 
     <script>
         document.body.addEventListener('htmx:afterSwap', function (evt) {
-            // Remove the initTree call for modal-content, Alpine auto-detects x-data
-            if (evt.detail.target.id !== 'modal-content' && evt.detail.target.closest('#table-container')) {
+            if (evt.detail.target.id === 'modal-content') {
                 if (window.Alpine) {
-                    Alpine.initTree(evt.detail.target);
+                    Alpine.initTree(document.getElementById('modal-container-inner'));
                 }
             }
         });
