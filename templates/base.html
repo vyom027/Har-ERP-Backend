@@ -51,24 +51,30 @@
                     } catch(e) { console.error('Error:', e); }
                 },
                 get limitData() {
-                    if (!this.opId || !this.limits[this.opId]) return { total: 0, allotted: 0 };
                     if (this.colorId === 'all') {
                         let total = 0; let allotted = 0;
-                        for (let id in this.limits[this.opId]) {
-                            if (id !== 'all') {
-                                total += parseInt(this.limits[this.opId][id].total) || 0;
-                                allotted += parseInt(this.limits[this.opId][id].allotted) || 0;
+                        if (this.opId && this.limits[this.opId]) {
+                            for (let id in this.limits[this.opId]) {
+                                if (id !== 'all') {
+                                    total += parseInt(this.limits[this.opId][id].total) || 0;
+                                    allotted += parseInt(this.limits[this.opId][id].allotted) || 0;
+                                }
                             }
                         }
                         return { total, allotted };
                     }
+                    if (!this.opId || !this.limits[this.opId]) return { total: 0, allotted: 0 };
                     return this.limits[this.opId][this.colorId] || { total: 0, allotted: 0 };
+                },
+                get effectivePieces() {
+                    if (this.colorId === 'all') return this.limitData.total - this.limitData.allotted;
+                    return parseInt(this.pieces) || 0;
                 },
                 get isOver() { 
                     if (this.colorId === 'all') return false;
                     return (parseInt(this.pieces) || 0) > (parseInt(this.limitData.total) - parseInt(this.limitData.allotted));
                 },
-                get canSave() { return this.lotId && this.opId && this.workerId && (parseInt(this.pieces) > 0) && (parseFloat(this.rate) > 0) && !this.isOver; }
+                get canSave() { return this.lotId && this.opId && this.workerId && (this.effectivePieces > 0) && (parseFloat(this.rate) > 0) && !this.isOver; }
             };
         };
 
@@ -88,11 +94,15 @@
                     }
                     return this.limits[this.colorId] || { total: 0, allotted: 0 };
                 },
+                get effectivePieces() {
+                    if (this.colorId === 'all') return this.limitData.total - this.limitData.allotted;
+                    return parseInt(this.pieces) || 0;
+                },
                 get isOver() {
                     if (this.colorId === 'all') return false;
                     return (parseInt(this.pieces) || 0) > (parseInt(this.limitData.total) - parseInt(this.limitData.allotted));
                 },
-                get canSave() { return (parseInt(this.pieces) > 0) && (parseFloat(this.rate) > 0) && !this.isOver; }
+                get canSave() { return (this.effectivePieces > 0) && (parseFloat(this.rate) > 0) && !this.isOver; }
             };
         };
 

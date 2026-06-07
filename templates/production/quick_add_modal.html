@@ -88,7 +88,8 @@
                     <input type="number" name="pieces" x-model="pieces" @input="touched = true" placeholder="Pieces" required 
                            class="w-full bg-white border rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 outline-none transition-all" 
                            :class="isOver ? 'border-rose-500 ring-rose-500/10' : 'border-slate-200 focus:ring-primary/10'"
-                           :readonly="colorId === 'all'">
+                           :readonly="colorId === 'all'"
+                           x-effect="if (colorId === 'all') pieces = effectivePieces">
                     <p x-show="touched && isOver" class="text-[9px] font-bold text-rose-500 mt-1 ml-1 animate-pulse">⚠️ Exceeds capacity!</p>
                 </div>
                 <div class="flex flex-col gap-1.5">
