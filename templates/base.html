@@ -96,23 +96,6 @@
             };
         };
 
-        window.initSampleForm = function(initialColorsJson, initialRate) {
-            let data = [];
-            try {
-                const decoded = initialColorsJson.replace(/&quot;/g, '"');
-                data = JSON.parse(decoded || '[]');
-            } catch(e) { console.error('Parse error:', e); }
-
-            return {
-                colors: data.length > 0 ? data : [{name: '', pieces: 1}],
-                rate: initialRate || '',
-                addColor() { this.colors.push({name: '', pieces: 1}); },
-                removeColor(index) { if (this.colors.length > 1) this.colors.splice(index, 1); },
-                get totalPcs() {
-                    return this.colors.reduce((sum, c) => sum + (parseInt(c.pieces) || 0), 0);
-                }
-            };
-        };
     </script>
 </head>
 

@@ -5,7 +5,7 @@
             <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sample / Item</th>
             <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Party</th>
             <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Labor</th>
-            <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Color Breakdown</th>
+
             <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Total Pcs</th>
             <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Rate</th>
             <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Total Amount</th>
@@ -31,17 +31,7 @@
                     <div class="text-sm font-semibold text-slate-700">{{ sample.labor.name }}</div>
                 </div>
             </td>
-            <td class="px-6 py-4">
-                <div class="flex flex-wrap gap-1 max-w-[200px]">
-                    {% for sc in sample.colors.all %}
-                    <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-bold rounded border border-slate-200 uppercase">
-                        {{ sc.color_name }}: {{ sc.pieces }}
-                    </span>
-                    {% empty %}
-                    <span class="text-slate-300 text-[10px] italic">No breakdown</span>
-                    {% endfor %}
-                </div>
-            </td>
+
             <td class="px-6 py-4 text-center text-sm font-bold text-slate-900">{{ sample.total_pieces }}</td>
             <td class="px-6 py-4 text-right text-sm font-semibold text-slate-600">₹{{ sample.rate }}</td>
             <td class="px-6 py-4 text-right">
@@ -69,7 +59,7 @@
         </tr>
         {% empty %}
         <tr>
-            <td colspan="9" class="px-6 py-12 text-center text-slate-400">
+            <td colspan="8" class="px-6 py-12 text-center text-slate-400">
                 <div class="flex flex-col items-center gap-2">
                     <svg class="w-12 h-12 text-slate-200" width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                     <p class="font-medium text-sm">No sample records found</p>

@@ -29,10 +29,3 @@ class Sample(models.Model):
     def __str__(self):
         return f"{self.sample_name} - {self.party.name}"
 
-class SampleColor(models.Model):
-    sample = models.ForeignKey(Sample, on_delete=models.CASCADE, related_name='colors')
-    color_name = models.CharField(max_length=100)
-    pieces = models.PositiveIntegerField(default=1)
-
-    def __str__(self):
-        return f"{self.color_name} ({self.pieces} pcs)"
