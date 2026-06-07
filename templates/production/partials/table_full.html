@@ -75,8 +75,29 @@
                     </a>
                 </th>
                 {% for h in header_config %}
-                <th class="sticky top-0 z-20 bg-slate-50 border-b border-r border-slate-200 px-4 py-3 text-center text-slate-900 font-bold font-display" colspan="{{ h.colspan }}">
-                    {{ h.op.name }}
+                <th class="sticky top-0 z-20 bg-slate-50 border-b border-r border-slate-200 px-4 py-3 text-center text-slate-900 font-bold font-display group/header" colspan="{{ h.colspan }}">
+                    <div x-data="{ editing: false, name: '{{ h.op.name }}' }" class="relative flex items-center justify-center min-h-[1.5rem]">
+                        <!-- View Mode -->
+                        <span x-show="!editing" 
+                              @click="editing = true; $nextTick(() => $refs.input.focus())" 
+                              class="cursor-pointer hover:text-primary transition-colors border-b border-transparent hover:border-primary/30"
+                              x-text="name">
+                            {{ h.op.name }}
+                        </span>
+
+                        <!-- Edit Mode -->
+                        <input x-show="editing" 
+                               x-ref="input"
+                               x-model="name"
+                               @click.away="editing = false"
+                               @keydown.enter="editing = false"
+                               @keydown.escape="editing = false; name = '{{ h.op.name }}'"
+                               hx-post="{% url 'operations:inline_update_operation_name' %}"
+                               hx-trigger="change"
+                               hx-vals='{"id": "{{ h.op.id }}"}'
+                               name="name"
+                               class="bg-white border border-primary text-center w-full rounded px-1 py-0.5 text-xs focus:ring-2 focus:ring-primary/20 outline-none shadow-sm">
+                    </div>
                 </th>
                 {% endfor %}
             </tr>
