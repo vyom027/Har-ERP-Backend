@@ -1,83 +1,100 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <style>
         @page {
             size: A4;
             margin: 1.5cm;
         }
+
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
             color: #333;
             font-size: 10pt;
             line-height: 1.4;
         }
+
         .header {
             text-align: center;
             border-bottom: 2pt solid #0ea5e9;
             padding-bottom: 10pt;
             margin-bottom: 20pt;
         }
+
         .header h1 {
             color: #0ea5e9;
             margin: 0;
             font-size: 24pt;
             text-transform: uppercase;
         }
+
         .header p {
             margin: 5pt 0 0 0;
             color: #64748b;
             font-weight: bold;
         }
+
         .info-section {
             margin-bottom: 20pt;
         }
+
         .info-table {
             width: 100%;
             border-collapse: collapse;
         }
+
         .info-table td {
-            padding: 5pt;
+            padding: 1pt;
             vertical-align: top;
         }
+
         .label {
             font-weight: bold;
             color: #64748b;
             text-transform: uppercase;
             font-size: 8pt;
         }
+
         .value {
             font-size: 11pt;
             font-weight: bold;
         }
+
         .stats-grid {
             width: 100%;
             margin-bottom: 20pt;
         }
+
         .stat-box {
             padding: 10pt;
             background: #f8fafc;
             border: 1pt solid #e2e8f0;
             text-align: center;
         }
+
         .stat-label {
             font-size: 8pt;
             font-weight: bold;
             color: #64748b;
             text-transform: uppercase;
         }
+
         .stat-value {
             font-size: 14pt;
             font-weight: bold;
             color: #0f172a;
         }
+
         .stat-value.balance {
             color: #f59e0b;
         }
+
         .ledger-table {
             width: 100%;
             border-collapse: collapse;
         }
+
         .ledger-table th {
             background: #f1f5f9;
             border-bottom: 1pt solid #cbd5e1;
@@ -87,13 +104,21 @@
             color: #475569;
             text-transform: uppercase;
         }
+
         .ledger-table td {
-            padding: 8pt 5pt;
+            padding: 2px 2px;
             border-bottom: 1pt solid #f1f5f9;
             font-size: 9pt;
         }
-        .text-right { text-align: right; }
-        .font-bold { font-weight: bold; }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
         .footer {
             margin-top: 30pt;
             text-align: center;
@@ -104,6 +129,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="header">
         <h1>HAR APPERALS</h1>
@@ -133,22 +159,30 @@
         <tr>
             <td class="stat-box" width="33%">
                 <div class="stat-label">Total Earned</div>
-                <div class="stat-value">Rs. {{ period_earned }}</div>
-                <div class="stat-label" style="color: #0ea5e9; margin-top: 4pt; border-top: 1pt solid #e2e8f0; padding-top: 2pt;">
-                    {% if current_period == 'all' %}All Time{% elif current_period == 'today' %}Today{% elif current_period == 'week' %}Last 7 Days{% elif current_period == '10days' %}Last 10 Days{% elif current_period == 'month' %}This Month{% else %}Custom Range{% endif %}
+                <div class="stat-value">Rs. {{ period_earned |floatformat:2 }}</div>
+                <div class="stat-label"
+                    style="color: #0ea5e9; margin-top: 4pt; border-top: 1pt solid #e2e8f0; padding-top: 2pt;">
+                    {% if current_period == 'all' %}All Time{% elif current_period == 'today' %}Today{% elif
+                    current_period == 'week' %}Last 7 Days{% elif current_period == '10days' %}Last 10 Days{% elif
+                    current_period == 'month' %}This Month{% else %}Custom Range{% endif %}
                 </div>
             </td>
             <td class="stat-box" width="33%">
                 <div class="stat-label">Total Paid</div>
-                <div class="stat-value">Rs. {{ period_paid }}</div>
-                <div class="stat-label" style="color: #059669; margin-top: 4pt; border-top: 1pt solid #e2e8f0; padding-top: 2pt;">
-                    {% if current_period == 'all' %}All Time{% elif current_period == 'today' %}Today{% elif current_period == 'week' %}Last 7 Days{% elif current_period == '10days' %}Last 10 Days{% elif current_period == 'month' %}This Month{% else %}Custom Range{% endif %}
+                <div class="stat-value">Rs. {{ period_paid |floatformat:2 }}</div>
+                <div class="stat-label"
+                    style="color: #059669; margin-top: 4pt; border-top: 1pt solid #e2e8f0; padding-top: 2pt;">
+                    {% if current_period == 'all' %}All Time{% elif current_period == 'today' %}Today{% elif
+                    current_period == 'week' %}Last 7 Days{% elif current_period == '10days' %}Last 10 Days{% elif
+                    current_period == 'month' %}This Month{% else %}Custom Range{% endif %}
                 </div>
             </td>
             <td class="stat-box" width="33%">
                 <div class="stat-label">Total Pending</div>
-                <div class="stat-value balance">Rs. {{ total_pending }}</div>
-                <div class="stat-label" style="color: #d97706; margin-top: 4pt; border-top: 1pt solid #e2e8f0; padding-top: 2pt;">Global Balance</div>
+                <div class="stat-value balance">Rs. {{ total_pending |floatformat:2 }}</div>
+                <div class="stat-label"
+                    style="color: #d97706; margin-top: 4pt; border-top: 1pt solid #e2e8f0; padding-top: 2pt;">Global
+                    Balance</div>
             </td>
         </tr>
     </table>
@@ -178,9 +212,9 @@
                 <td class="text-right">{% if item.rate != '-' %}Rs. {{ item.rate }}{% else %}-{% endif %}</td>
                 <td class="text-right font-bold">
                     {% if item.type == 'Work' %}
-                        +Rs. {{ item.credit }}
+                    +Rs. {{ item.credit }}
                     {% else %}
-                        -Rs. {{ item.debit }}
+                    -Rs. {{ item.debit }}
                     {% endif %}
                 </td>
             </tr>
@@ -196,4 +230,5 @@
         This is a computer generated statement from Har Apperals ERP.
     </div>
 </body>
+
 </html>
