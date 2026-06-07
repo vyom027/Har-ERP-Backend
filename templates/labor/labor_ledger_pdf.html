@@ -63,11 +63,11 @@
 
         .stats-grid {
             width: 100%;
-            margin-bottom: 20pt;
+            margin-bottom: 10pt;
         }
 
         .stat-box {
-            padding: 10pt;
+            padding: 5pt;
             background: #f8fafc;
             border: 1pt solid #e2e8f0;
             text-align: center;
@@ -131,24 +131,19 @@
 </head>
 
 <body>
-    <div class="header">
-        <h1>HAR APPERALS</h1>
-        <p>Worker Ledger Statement</p>
-    </div>
-
     <div class="info-section">
         <table class="info-table">
             <tr>
                 <td width="50%">
                     <div class="label">Worker Name</div>
-                    <div class="value">{{ labor.name }}</div>
-                    <div class="label" style="margin-top: 5pt;">Phone Number</div>
+                    <div class="value" style="margin-bottom: 10pt;">{{ labor.name }}</div>
+                    <div class="label">Phone Number</div>
                     <div class="value">{{ labor.phone|default:"-" }}</div>
                 </td>
                 <td width="50%" class="text-right">
                     <div class="label">Statement Period</div>
-                    <div class="value">{{ start_date }} - {{ end_date }}</div>
-                    <div class="label" style="margin-top: 5pt;">Generated On</div>
+                    <div class="value" style="margin-bottom: 10pt;">{{ start_date }} - {{ end_date }}</div>
+                    <div class="label">Generated On</div>
                     <div class="value">{{ generated_at|date:"d M Y, h:i A" }}</div>
                 </td>
             </tr>
