@@ -37,7 +37,10 @@
                     <td class="px-6 py-4 text-slate-500 text-sm">{{ party.phone|default:"—" }}</td>
                     <td class="px-6 py-4 text-slate-500 text-sm max-w-[200px] truncate">{{ party.address|default:"—" }}</td>
                     <td class="px-6 py-4 text-center">
-                        <span class="bg-sky-50 text-primary font-bold text-xs px-3 py-1 rounded-full">{{ party.lot_count }} lot{{ party.lot_count|pluralize }}</span>
+                        <a href="{% url 'production:table' %}?party_id={{ party.id }}" 
+                           class="bg-sky-50 text-primary font-bold text-xs px-3 py-1 rounded-full hover:bg-primary hover:text-white transition-all">
+                            {{ party.lot_count }} lot{{ party.lot_count|pluralize }}
+                        </a>
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex items-center justify-end gap-2">

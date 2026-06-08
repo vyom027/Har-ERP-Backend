@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | Jeans ERP{% endblock %}
+{% block header_title %}{{ title }}{% endblock %}
+
+{% block main_content %}
+<div class="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500" x-data="{ items: [{% for item in inward.items.all %}{id: {{ forloop.counter }}, roll: '{{ item.roll_no }}', color: '{{ item.color }}', meters: '{{ item.meters }}'},{% empty %}{id: Date.now(), roll: '', color: '', meters: ''}{% endfor %}] }">
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h4 class="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2 font-display uppercase tracking-wider">Inward Header</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sr No</label>
+                    {{ form.sr_no }}
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Date</label>
+                    {{ form.date }}
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Challan No</label>
+                    {{ form.challan_no }}
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Delivery Party</label>
+                    {{ form.delivery_party }}
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Buyer Party</label>
+                    {{ form.buyer_party }}
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Article No</label>
+                    {{ form.article_no }}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-sm font-bold text-slate-900 flex items-center gap-2 font-display uppercase tracking-wider">Items</h4>
+                <button type="button" @click="items.push({id: Date.now(), roll: '', color: '', meters: ''})" 
+                        class="bg-primary hover:bg-sky-600 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Item
+                </button>
+            </div>
+            <div class="space-y-2">
+                <template x-for="(item, index) in items" :key="item.id">
+                    <div class="grid grid-cols-4 gap-3 items-center p-3 bg-slate-50 rounded-xl">
+                        <input type="text" name="roll_no[]" x-model="item.roll" placeholder="Roll No" class="form-input-sm" required>
+                        <input type="text" name="color[]" x-model="item.color" placeholder="Color" class="form-input-sm">
+                        <input type="number" name="meters[]" x-model="item.meters" placeholder="Meters" step="0.01" class="form-input-sm" required>
+                        <button type="button" @click="items.splice(index, 1)" class="text-rose-400 hover:text-rose-600 text-xs font-bold">Remove</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <a href="{% url 'inward:inward_list' %}" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-center transition-all btn-press">Cancel</a>
+            <button type="submit" class="flex-[2] bg-primary hover:bg-sky-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-primary/20 transition-all btn-press">
+                {% if form.instance.pk %}Update Inward{% else %}Save Inward{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-input {
+        width: 100%;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        color: #0f172a;
+        outline: none;
+        transition: all 0.2s;
+    }
+    .form-input-sm {
+        width: 100%;
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        font-size: 0.875rem;
+        outline: none;
+    }
+    .form-input:focus, .form-input-sm:focus {
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+    }
+</style>
+{% endblock %}

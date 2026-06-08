@@ -80,7 +80,7 @@
                     <div class="flex items-center justify-between px-1">
                         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pieces</label>
                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-md" :class="isOver ? 'bg-rose-100 text-rose-500' : ''">
-                            Tot: <span x-text="limitData.total"></span> | All: <span x-text="limitData.allotted"></span>
+                            Tot: <span class="text-slate-900 font-bold" x-text="limitData.total"></span> | All: <span class="text-slate-900 font-bold" x-text="limitData.allotted"></span>
                         </span>
                     </div>
                     <input type="number" name="pieces" x-model="pieces" @input="touchedP = true" placeholder="Enter pieces" required 

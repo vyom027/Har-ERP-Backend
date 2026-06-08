@@ -1,4 +1,18 @@
 {% load production_extras %}
+{% if party %}
+<div class="px-6 py-3 bg-sky-50 border-b border-sky-100 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </div>
+        <h3 class="text-sm font-bold text-slate-900 font-display">Production for <span class="text-primary">{{ party.name }}</span></h3>
+    </div>
+    <a href="{% url 'production:table' %}" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-rose-500 transition-colors flex items-center gap-1">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        Clear Filter
+    </a>
+</div>
+{% endif %}
 <!-- Filter Bar -->
 <div class="p-4 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50/50">
     <div class="flex items-center gap-4">
@@ -7,14 +21,15 @@
                    id="search-input"
                    name="search" 
                    value="{{ search }}"
-                   placeholder="Search Lot/Party..." 
+                   placeholder="Search Lot..." 
                    class="bg-white border border-slate-200 rounded-xl px-10 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none w-64 transition-all"
                    hx-get="{% url 'production:table' %}"
                    hx-trigger="keyup changed delay:500ms"
                    hx-target="#production-spreadsheet-wrapper"
-                   hx-include="[name='status']"
+                   hx-include="[name='status'], [name='party_id']"
                    hx-push-url="true">
             <svg class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input type="hidden" name="party_id" value="{{ party_id|default:'' }}">
         </div>
         <select name="status" 
                 id="status-select"
@@ -22,7 +37,7 @@
                 hx-get="{% url 'production:table' %}"
                 hx-trigger="change"
                 hx-target="#production-spreadsheet-wrapper"
-                hx-include="[name='search']"
+                hx-include="[name='search'], [name='party_id']"
                 hx-push-url="true">
             <option value="all" {% if status == 'all' %}selected{% endif %}>All Status</option>
             <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
@@ -53,7 +68,7 @@
         <thead>
             <tr class="bg-slate-50">
                 <th class="sticky left-0 top-0 z-30 bg-white border-b border-r border-slate-200 px-4 py-3 min-w-[100px] text-left text-slate-500 font-bold uppercase tracking-tighter" rowspan="2">
-                    <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'lot_asc' %}lot_desc{% else %}lot_asc{% endif %}&search={{ search }}&status={{ status }}"
+                    <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'lot_asc' %}lot_desc{% else %}lot_asc{% endif %}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
                        hx-target="#production-spreadsheet-wrapper"
                        hx-push-url="true"
                        class="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors">
@@ -64,7 +79,7 @@
                     </a>
                 </th>
                 <th class="sticky left-[100px] top-0 z-30 bg-white border-b border-r border-slate-200 px-4 py-3 min-w-[150px] text-left text-slate-500 font-bold uppercase tracking-tighter" rowspan="2">
-                    <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'party_asc' %}party_desc{% else %}party_asc{% endif %}&search={{ search }}&status={{ status }}"
+                    <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'party_asc' %}party_desc{% else %}party_asc{% endif %}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
                        hx-target="#production-spreadsheet-wrapper"
                        hx-push-url="true"
                        class="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors">
@@ -237,7 +252,7 @@
     <div class="flex items-center gap-1">
         {% if page_obj.has_previous %}
         <!-- First Page -->
-        <button hx-get="{% url 'production:table' %}?page=1&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+        <button hx-get="{% url 'production:table' %}?page=1&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
                 hx-target="#production-spreadsheet-wrapper"
                 hx-push-url="true"
                 title="First Page"
@@ -245,7 +260,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7M18 19l-7-7 7-7"></path></svg>
         </button>
         <!-- Previous Page -->
-        <button hx-get="{% url 'production:table' %}?page={{ page_obj.previous_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+        <button hx-get="{% url 'production:table' %}?page={{ page_obj.previous_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
                 hx-target="#production-spreadsheet-wrapper"
                 hx-push-url="true"
                 title="Previous Page"
@@ -260,7 +275,7 @@
                 {% if n == page_obj.number %}
                 <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white text-[11px] font-bold shadow-lg shadow-primary/20">{{ n }}</span>
                 {% elif n > page_obj.number|add:'-3' and n < page_obj.number|add:'3' %}
-                <button hx-get="{% url 'production:table' %}?page={{ n }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+                <button hx-get="{% url 'production:table' %}?page={{ n }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
                         hx-target="#production-spreadsheet-wrapper"
                         hx-push-url="true"
                         class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-sm text-slate-500 text-[11px] font-bold transition-all">{{ n }}</button>
@@ -270,7 +285,7 @@
 
         {% if page_obj.has_next %}
         <!-- Next Page -->
-        <button hx-get="{% url 'production:table' %}?page={{ page_obj.next_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+        <button hx-get="{% url 'production:table' %}?page={{ page_obj.next_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
                 hx-target="#production-spreadsheet-wrapper"
                 hx-push-url="true"
                 title="Next Page"
@@ -278,7 +293,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
         <!-- Last Page -->
-        <button hx-get="{% url 'production:table' %}?page={{ page_obj.paginator.num_pages }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}"
+        <button hx-get="{% url 'production:table' %}?page={{ page_obj.paginator.num_pages }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
                 hx-target="#production-spreadsheet-wrapper"
                 hx-push-url="true"
                 title="Last Page"

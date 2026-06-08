@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Inward | Jeans ERP{% endblock %}
+{% block header_title %}Confirm Deletion{% endblock %}
+
+{% block main_content %}
+<div class="max-w-md mx-auto mt-12 animate-in fade-in zoom-in-95 duration-300">
+    <div class="bg-white rounded-[2rem] shadow-2xl p-8 border border-slate-100 text-center">
+        <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </div>
+        
+        <h3 class="text-2xl font-bold text-slate-900 mb-2 font-display">Delete Inward?</h3>
+        <p class="text-slate-500 mb-8">Are you sure you want to delete Inward <strong>#{{ inward.sr_no }}</strong> (Challan: {{ inward.challan_no }})? This action cannot be undone.</p>
+        
+        <form method="post" class="flex gap-4">
+            {% csrf_token %}
+            <a href="{% url 'inward:inward_list' %}" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-2xl transition-all btn-press">
+                Cancel
+            </a>
+            <button type="submit" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-rose-500/20 transition-all btn-press">
+                Delete
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

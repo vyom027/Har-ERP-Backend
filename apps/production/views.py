@@ -19,11 +19,19 @@ def production_table(request):
     search = request.GET.get('search', '')
     status = request.GET.get('status', 'active')
     page = request.GET.get('page', 1)
+    party_id = request.GET.get('party_id')
     
     ops = Operation.objects.filter(active=True).prefetch_related('sub_operations')
     
     # Base Queryset
     lots_qs = Lot.objects.select_related('party').prefetch_related('colors')
+    
+    # Apply Party Filter
+    party = None
+    if party_id:
+        from apps.core.models import Party
+        party = get_object_or_404(Party, id=party_id)
+        lots_qs = lots_qs.filter(party_id=party_id)
     
     # Apply Status Filter
     if status and status != 'all':
@@ -102,6 +110,8 @@ def production_table(request):
         'current_sort': sort,
         'search': search,
         'status': status,
+        'party_id': party_id,
+        'party': party,
     }
     
     if request.headers.get('HX-Request'):
