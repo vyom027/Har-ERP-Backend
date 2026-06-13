@@ -1,0 +1,40 @@
+{% extends 'portal/base.html' %}
+{% block title %}Payments | Har Apperals{% endblock %}
+
+{% block content %}
+<h2 class="text-lg font-bold text-slate-900 font-display mb-4">Payment History</h2>
+
+{% if page_obj.object_list %}
+<div class="space-y-3">
+    {% for p in page_obj %}
+    <div class="surface rounded-2xl p-4 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-500">{{ p.get_payment_type_display }}</span>
+                <span class="font-bold text-slate-900">{{ p.payment_date|date:"d M Y" }}</span>
+            </div>
+            {% if p.note %}<p class="text-xs text-slate-400 mt-1 truncate">{{ p.note }}</p>{% endif %}
+        </div>
+        <span class="font-bold text-emerald-600 font-display whitespace-nowrap">₹{{ p.amount|floatformat:2 }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="flex items-center justify-center gap-3 mt-5">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="surface px-4 py-2 rounded-xl text-sm font-bold text-slate-600">Prev</a>
+    {% endif %}
+    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="surface px-4 py-2 rounded-xl text-sm font-bold text-slate-600">Next</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-16 text-slate-400">
+    <p class="font-medium">No payments received yet.</p>
+</div>
+{% endif %}
+{% endblock %}

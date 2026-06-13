@@ -4,24 +4,24 @@
 {% block header_title %}Manage Inwards{% endblock %}
 
 {% block main_content %}
-<div class="flex justify-between items-center mb-8">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
     <h3 class="text-xl font-bold text-slate-900 font-display">Inward Management</h3>
-    <div class="flex gap-4">
-        <form method="get" class="relative">
-            <input type="text" name="q" value="{{ query }}" placeholder="Search inwards..." 
-                   class="pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-64">
+    <div class="flex flex-col sm:flex-row gap-4">
+        <form method="get" class="relative w-full sm:w-auto">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search inwards..."
+                   class="pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all w-full sm:w-64">
             <svg class="w-5 h-5 absolute left-3 top-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
         </form>
-        <a href="{% url 'inward:inward_create' %}" class="bg-primary hover:bg-sky-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-primary/20 transition-all btn-press flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        <a href="{% url 'inward:inward_create' %}" class="self-start sm:self-auto bg-primary hover:bg-sky-700 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow-lg shadow-primary/20 transition-all btn-press flex items-center justify-center gap-1.5 whitespace-nowrap">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Add Inward
         </a>
     </div>
 </div>
 
-<div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+<div class="surface-card-solid rounded-2xl overflow-hidden shadow-premium">
     <div class="overflow-x-auto">
         <table class="w-full text-left">
             <thead>

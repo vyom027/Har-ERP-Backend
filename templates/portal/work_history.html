@@ -1,0 +1,20 @@
+{% extends 'portal/base.html' %}
+{% block title %}Work History | Har Apperals{% endblock %}
+
+{% block content %}
+<h2 class="text-lg font-bold text-slate-900 font-display mb-4">Work History</h2>
+
+<div class="relative mb-4">
+    <svg class="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+    <input type="text" name="search" value="{{ search }}" placeholder="Search lot or operation..."
+           class="surface w-full rounded-2xl pl-12 pr-4 py-3.5 text-slate-900 font-medium placeholder:text-slate-400 focus:outline-none focus:border-primary"
+           hx-get="{% url 'portal:work' %}"
+           hx-trigger="keyup changed delay:400ms"
+           hx-target="#work-list"
+           hx-push-url="true">
+</div>
+
+<div id="work-list">
+    {% include 'portal/partials/work_rows.html' %}
+</div>
+{% endblock %}

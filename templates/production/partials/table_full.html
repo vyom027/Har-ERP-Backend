@@ -14,15 +14,15 @@
 </div>
 {% endif %}
 <!-- Filter Bar -->
-<div class="p-4 border-b border-slate-100 flex items-center justify-between gap-4 bg-slate-50/50">
-    <div class="flex items-center gap-4">
-        <div class="relative group">
-            <input type="text" 
+<div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+    <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+        <div class="relative group w-full sm:w-auto">
+            <input type="text"
                    id="search-input"
-                   name="search" 
+                   name="search"
                    value="{{ search }}"
-                   placeholder="Search Lot..." 
-                   class="bg-white border border-slate-200 rounded-xl px-10 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none w-64 transition-all"
+                   placeholder="Search Lot..."
+                   class="bg-white border border-slate-200 rounded-xl px-10 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none w-full sm:w-64 transition-all"
                    hx-get="{% url 'production:table' %}"
                    hx-trigger="keyup changed delay:500ms"
                    hx-target="#production-spreadsheet-wrapper"
@@ -63,7 +63,7 @@
 </div>
 
 <!-- Spreadsheet Container -->
-<div id="table-container" class="flex-1 overflow-auto custom-scrollbar relative">
+<div id="table-container" class="flex-1 min-w-0 overflow-auto custom-scrollbar relative">
     <table class="w-full border-collapse text-[11px]">
         <thead>
             <tr class="bg-slate-50">
@@ -78,7 +78,7 @@
                         </span>
                     </a>
                 </th>
-                <th class="sticky left-[100px] top-0 z-30 bg-white border-b border-r border-slate-200 px-4 py-3 min-w-[150px] text-left text-slate-500 font-bold uppercase tracking-tighter" rowspan="2">
+                <th class="sticky sm:left-[100px] top-0 z-30 bg-white border-b border-r border-slate-200 px-4 py-3 min-w-[150px] text-left text-slate-500 font-bold uppercase tracking-tighter" rowspan="2">
                     <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'party_asc' %}party_desc{% else %}party_asc{% endif %}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
                        hx-target="#production-spreadsheet-wrapper"
                        hx-push-url="true"
@@ -129,12 +129,12 @@
         <tbody class="divide-y divide-slate-100">
             {% for lot in lots %}
             <tr class="hover:bg-slate-50/50 transition-colors group">
-                <td class="sticky left-0 z-10 bg-white border-r border-slate-100 px-4 py-4 font-bold text-slate-900 group-hover:bg-slate-50">
+                <td class="sticky left-0 z-20 bg-white border-r border-slate-100 px-4 py-4 font-bold text-slate-900 group-hover:bg-slate-50">
                     <a href="{% url 'core:lot_detail' lot.id %}" class="text-primary hover:underline font-display">
                         {{ lot.lot_number }}
                     </a>
                 </td>
-                <td class="sticky left-[100px] z-10 bg-white border-r border-slate-100 px-4 py-4 text-slate-600 group-hover:bg-slate-50">
+                <td class="sticky sm:left-[100px] z-10 bg-white border-r border-slate-100 px-4 py-4 text-slate-600 group-hover:bg-slate-50">
                     <div class="truncate w-[130px] font-semibold">{{ lot.party.name }}</div>
                     <div class="text-[10px] text-slate-400">{{ lot.total_pieces }} pcs</div>
                 </td>

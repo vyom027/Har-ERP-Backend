@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Portal | Har Apperals{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #0ea5e9; --secondary: #0d9488; }
+        body {
+            font-family: 'Inter', sans-serif; color:#0f172a;
+            background: #f0f9ff;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(14,165,233,0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(13,148,136,0.08) 0px, transparent 50%);
+            margin: 0;
+        }
+        h1, h2, h3, .font-display { font-family: 'Outfit', sans-serif; }
+        .surface { background: rgba(255,255,255,0.75); backdrop-filter: blur(16px) saturate(160%); -webkit-backdrop-filter: blur(16px) saturate(160%); border: 1px solid rgba(255,255,255,0.6); }
+        .nav-link { transition: color .15s ease; }
+        .nav-link.active { color: var(--primary); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen pb-24">
+    <!-- Top bar -->
+    <header class="surface sticky top-0 z-20 px-5 py-4 flex items-center justify-between border-b border-white/40">
+        <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shrink-0" style="background: linear-gradient(135deg, var(--primary), var(--secondary));">
+                {{ labor.name.0|upper }}
+            </div>
+            <div class="min-w-0">
+                <p class="font-bold text-slate-900 font-display truncate">{{ labor.name }}</p>
+                <p class="text-xs text-slate-400 truncate">{{ labor.login_mobile }}</p>
+            </div>
+        </div>
+        <a href="{% url 'portal:logout' %}" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 text-rose-500 font-bold text-sm hover:bg-rose-100 transition-all shrink-0" title="Logout">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            <span class="hidden sm:inline">Logout</span>
+        </a>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-4 sm:px-6 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bottom nav (mobile-first) -->
+    <nav class="surface fixed bottom-0 inset-x-0 z-20 border-t border-white/40 flex items-center justify-around px-2 py-2">
+        {% with active=request.resolver_match.url_name %}
+        <a href="{% url 'portal:home' %}" class="nav-link flex flex-col items-center gap-1 px-5 py-1.5 text-slate-400 {% if active == 'home' %}active{% endif %}">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span class="text-[10px] font-bold uppercase tracking-wide">Balance</span>
+        </a>
+        <a href="{% url 'portal:work' %}" class="nav-link flex flex-col items-center gap-1 px-5 py-1.5 text-slate-400 {% if active == 'work' %}active{% endif %}">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+            <span class="text-[10px] font-bold uppercase tracking-wide">Work</span>
+        </a>
+        <a href="{% url 'portal:payments' %}" class="nav-link flex flex-col items-center gap-1 px-5 py-1.5 text-slate-400 {% if active == 'payments' %}active{% endif %}">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            <span class="text-[10px] font-bold uppercase tracking-wide">Payments</span>
+        </a>
+        {% endwith %}
+    </nav>
+</body>
+</html>

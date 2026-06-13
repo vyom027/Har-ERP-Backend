@@ -1,0 +1,15 @@
+{% extends 'portal/_auth_base.html' %}
+{% block title %}All Set | Har Apperals{% endblock %}
+
+{% block content %}
+<div class="auth-card p-10 rounded-[2.5rem] text-center">
+    <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+        <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    </div>
+    <h1 class="text-2xl font-bold text-slate-900 mb-2">PIN Set Successfully</h1>
+    <p class="text-slate-500 mb-8">You can now log in with your mobile number and PIN.</p>
+    <a href="{% url 'portal:login' %}" class="btn-friendly inline-block w-full py-4 rounded-2xl text-lg font-bold shadow-lg">
+        Go to Login
+    </a>
+</div>
+{% endblock %}

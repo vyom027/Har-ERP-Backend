@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup Links | Har Apperals{% endblock %}
+{% block header_title %}Worker Setup Links{% endblock %}
+
+{% block main_content %}
+<div class="max-w-3xl mx-auto">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h3 class="text-xl font-bold text-slate-900 font-display">
+                {% if single_reset %}PIN Reset — Send New Link{% else %}Send Setup Links{% endif %}
+            </h3>
+            <p class="text-slate-500 text-sm mt-1">Click each "Send on WhatsApp" to message the worker. Links expire in 48 hours.</p>
+        </div>
+        <a href="{% url 'labor:labor_list' %}" class="text-sm font-bold text-slate-500 hover:text-primary whitespace-nowrap">&larr; Back to Workers</a>
+    </div>
+
+    {% if links %}
+    <div class="surface-card rounded-2xl overflow-hidden shadow-premium divide-y divide-slate-100">
+        {% for item in links %}
+        <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-primary font-bold shrink-0">{{ item.labor.name.0|upper }}</div>
+                <div class="min-w-0">
+                    <p class="font-bold text-slate-900 truncate">{{ item.labor.name }}</p>
+                    <p class="text-xs text-slate-400 truncate">{{ item.setup_url }}</p>
+                </div>
+            </div>
+            <a href="{{ item.wa_url }}" target="_blank" rel="noopener"
+               class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-all btn-press flex items-center justify-center gap-2 whitespace-nowrap shrink-0">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.515 5.26l-.999 3.648 3.484-.911z"/></svg>
+                Send on WhatsApp
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if skipped %}
+    <div class="mt-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+        <p class="font-bold text-amber-700 text-sm mb-1">Skipped (no WhatsApp number):</p>
+        <p class="text-amber-600 text-sm">{{ skipped|join:", " }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

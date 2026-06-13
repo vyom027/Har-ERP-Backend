@@ -3,6 +3,7 @@ from django.db import models as models
 from .models import Lot, Party, LotColor
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.core.paginator import Paginator
 
 @login_required
 def add_party(request):
@@ -23,8 +24,10 @@ def add_party(request):
 
 @login_required
 def lot_list(request):
-    lots = Lot.objects.select_related('party').prefetch_related('colors').order_by('-created_at')
-    return render(request, 'core/lot_list.html', {'lots': lots})
+    lots_qs = Lot.objects.select_related('party').prefetch_related('colors').order_by('-created_at')
+    paginator = Paginator(lots_qs, 20)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+    return render(request, 'core/lot_list.html', {'lots': page_obj, 'page_obj': page_obj})
 
 @login_required
 def lot_detail(request):

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Worker Portal | Har Apperals{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #0ea5e9; --secondary: #0d9488; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f9ff;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(13, 148, 136, 0.1) 0px, transparent 50%);
+            margin: 0; overflow-x: hidden;
+        }
+        h1, h2, h3, .font-display { font-family: 'Outfit', sans-serif; }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.03);
+        }
+        .logo-box { background: linear-gradient(135deg, var(--primary), var(--secondary)); box-shadow: 0 10px 20px rgba(14,165,233,0.2); }
+        .btn-friendly { background: linear-gradient(135deg, var(--primary), var(--secondary)); color:#fff; transition: all .3s ease; }
+        .btn-friendly:hover { filter: brightness(1.05); box-shadow: 0 10px 25px -5px rgba(14,165,233,.4); }
+        .btn-friendly:active { transform: scale(.98); }
+        .input-friendly { background:#f8fafc; border:2px solid #f1f5f9; transition: all .2s ease; }
+        .input-friendly:focus { background:#fff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(14,165,233,.1); outline:none; }
+        .glass-orb { position: fixed; border-radius: 9999px; filter: blur(80px); pointer-events: none; z-index: -1;
+            animation: orb-float 24s ease-in-out infinite alternate; }
+        @keyframes orb-float { from { transform: translate(0,0) scale(1);} to { transform: translate(40px,-30px) scale(1.08);} }
+        /* OTP-style PIN boxes */
+        .pin-box {
+            width: 3.25rem; height: 3.75rem; text-align: center;
+            font-size: 1.5rem; font-weight: 700; color: #0f172a;
+            background:#f8fafc; border:2px solid #e2e8f0; border-radius: 1rem;
+            -webkit-text-security: disc; text-security: disc;
+            transition: all .15s ease;
+        }
+        .pin-box:focus { background:#fff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(14,165,233,.12); outline:none; }
+        .pin-box.filled { border-color: var(--secondary); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+    <div class="glass-orb bg-sky-400/25 w-96 h-96 -top-24 -left-24"></div>
+    <div class="glass-orb bg-teal-400/20 w-[26rem] h-[26rem] -bottom-32 -right-24" style="animation-delay: -8s;"></div>
+
+    <div class="w-full max-w-md">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        // Upgrade every .pin-group (4 single-digit boxes -> hidden field).
+        // Auto-advance, backspace-back, auto-submit when ALL groups in the form are full.
+        document.querySelectorAll('.pin-group').forEach(function (group) {
+            var boxes = Array.prototype.slice.call(group.querySelectorAll('.pin-box'));
+            var hidden = group.querySelector('input[type=hidden]');
+            var form = group.closest('form');
+
+            function sync() {
+                hidden.value = boxes.map(function (b) { return b.value; }).join('');
+                boxes.forEach(function (b) { b.classList.toggle('filled', b.value !== ''); });
+                maybeSubmit();
+            }
+            function maybeSubmit() {
+                if (!form) return;
+                var groups = form.querySelectorAll('.pin-group');
+                var allFull = Array.prototype.every.call(groups, function (g) {
+                    return Array.prototype.every.call(g.querySelectorAll('.pin-box'), function (b) { return b.value !== ''; });
+                });
+                if (allFull && form.dataset.autosubmit === 'true') form.submit();
+            }
+            boxes.forEach(function (box, i) {
+                box.addEventListener('input', function () {
+                    box.value = box.value.replace(/\D/g, '').slice(0, 1);
+                    if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+                    sync();
+                });
+                box.addEventListener('keydown', function (e) {
+                    if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+                });
+                box.addEventListener('paste', function (e) {
+                    e.preventDefault();
+                    var digits = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, boxes.length);
+                    digits.split('').forEach(function (d, k) { if (boxes[k]) boxes[k].value = d; });
+                    sync();
+                    (boxes[digits.length] || boxes[boxes.length - 1]).focus();
+                });
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

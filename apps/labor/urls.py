@@ -14,4 +14,9 @@ urlpatterns = [
     path('payments/add/', views.add_payment, name='add_payment'),
     path('payments/<int:pk>/edit/', views.edit_payment, name='edit_payment'),
     path('payments/<int:pk>/delete/', views.delete_payment, name='delete_payment'),
+
+    # Worker portal admin controls
+    path('send-setup-links/', views.send_setup_links, name='send_setup_links'),
+    path('<int:pk>/reset-pin/', views.reset_pin, name='reset_pin'),
+    path('<int:pk>/toggle-access/', views.toggle_access, name='toggle_access'),
 ]

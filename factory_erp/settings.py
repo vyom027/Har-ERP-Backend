@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "apps.dashboard",
     "apps.samples",
     "apps.inward",
+    "apps.portal",
 ]
 
 MIDDLEWARE = [
@@ -66,6 +67,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "apps.portal.middleware.WorkerAccessMiddleware",
 ]
 
 ROOT_URLCONF = "factory_erp.urls"

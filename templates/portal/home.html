@@ -1,0 +1,34 @@
+{% extends 'portal/base.html' %}
+{% block title %}My Balance | Har Apperals{% endblock %}
+
+{% block content %}
+<h2 class="text-lg font-bold text-slate-900 font-display mb-4">My Balance</h2>
+
+<!-- Pending — hero card -->
+<div class="rounded-3xl p-7 mb-4 text-white shadow-xl" style="background: linear-gradient(135deg, var(--primary), var(--secondary));">
+    <p class="text-sm font-semibold uppercase tracking-widest opacity-80">Current Pending Balance</p>
+    <p class="text-4xl font-bold font-display mt-2">₹{{ pending|floatformat:2 }}</p>
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+    <div class="surface rounded-2xl p-5">
+        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Earned</p>
+        <p class="text-2xl font-bold text-slate-900 font-display mt-1">₹{{ total_earned|floatformat:2 }}</p>
+    </div>
+    <div class="surface rounded-2xl p-5">
+        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Paid</p>
+        <p class="text-2xl font-bold text-emerald-600 font-display mt-1">₹{{ total_paid|floatformat:2 }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 mt-4">
+    <a href="{% url 'portal:work' %}" class="surface rounded-2xl p-5 flex items-center justify-between hover:border-primary/40 transition-all">
+        <span class="font-bold text-slate-700">Work History</span>
+        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </a>
+    <a href="{% url 'portal:payments' %}" class="surface rounded-2xl p-5 flex items-center justify-between hover:border-primary/40 transition-all">
+        <span class="font-bold text-slate-700">Payments</span>
+        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </a>
+</div>
+{% endblock %}

@@ -25,26 +25,64 @@
         </div>
     </div>
     
-    <div class="flex gap-4">
-        <div class="text-center px-6 border-r border-slate-100">
+    <div class="flex flex-wrap justify-center gap-4">
+        <div class="text-center px-4 sm:px-6 border-r border-slate-100">
             <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Total Earned</p>
             <p class="text-2xl font-bold text-slate-900">₹{{ period_earned }}</p>
             <p class="text-[9px] text-primary font-bold uppercase mt-1">
                 {% if current_period == 'all' %}All Time{% elif current_period == 'today' %}Today{% elif current_period == 'week' %}Last 7 Days{% elif current_period == '10days' %}Last 10 Days{% elif current_period == 'month' %}This Month{% else %}Custom Range{% endif %}
             </p>
         </div>
-        <div class="text-center px-6 border-r border-slate-100">
+        <div class="text-center px-4 sm:px-6 border-r border-slate-100">
             <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Total Paid</p>
             <p class="text-2xl font-bold text-emerald-600">₹{{ period_paid }}</p>
             <p class="text-[9px] text-emerald-500 font-bold uppercase mt-1">
                 {% if current_period == 'all' %}All Time{% elif current_period == 'today' %}Today{% elif current_period == 'week' %}Last 7 Days{% elif current_period == '10days' %}Last 10 Days{% elif current_period == 'month' %}This Month{% else %}Custom Range{% endif %}
             </p>
         </div>
-        <div class="text-center px-6">
+        <div class="text-center px-4 sm:px-6">
             <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Total Pending</p>
             <p class="text-2xl font-bold text-accent">₹{{ pending }}</p>
             <p class="text-[9px] text-slate-400 font-bold uppercase mt-1">Global Balance</p>
         </div>
+    </div>
+</div>
+
+<!-- Worker Portal Controls -->
+<div class="surface-card rounded-2xl p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+    <div class="flex items-center gap-3">
+        <span class="text-sm font-bold text-slate-600">Worker Portal:</span>
+        {% if labor.portal_status == 'active' %}
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active</span>
+        {% elif labor.portal_status == 'revoked' %}
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-50 text-rose-500"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Revoked</span>
+        {% else %}
+        <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 text-slate-400"><span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> Not Set Up</span>
+        {% endif %}
+    </div>
+    <div class="flex items-center gap-2">
+        <form method="post" action="{% url 'labor:send_setup_links' %}">
+            {% csrf_token %}
+            <input type="hidden" name="labor_ids" value="{{ labor.id }}">
+            <button type="submit" class="bg-primary hover:bg-sky-700 text-white px-3 py-2 rounded-xl font-bold text-xs transition-all btn-press whitespace-nowrap">
+                {% if labor.portal_status == 'not_set' %}Send Setup Link{% else %}Resend Link{% endif %}
+            </button>
+        </form>
+        {% if labor.portal_status != 'not_set' %}
+        <form method="post" action="{% url 'labor:reset_pin' labor.id %}"
+              onsubmit="return confirm('Reset this worker\'s PIN? They will need to set a new one via a fresh link.');">
+            {% csrf_token %}
+            <button type="submit" class="bg-amber-50 hover:bg-amber-100 text-amber-600 px-3 py-2 rounded-xl font-bold text-xs transition-all btn-press whitespace-nowrap">Reset PIN</button>
+        </form>
+        <form method="post" action="{% url 'labor:toggle_access' labor.id %}">
+            {% csrf_token %}
+            {% if labor.login_enabled %}
+            <button type="submit" class="bg-rose-50 hover:bg-rose-100 text-rose-500 px-3 py-2 rounded-xl font-bold text-xs transition-all btn-press whitespace-nowrap">Revoke Access</button>
+            {% else %}
+            <button type="submit" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-3 py-2 rounded-xl font-bold text-xs transition-all btn-press whitespace-nowrap">Restore Access</button>
+            {% endif %}
+        </form>
+        {% endif %}
     </div>
 </div>
 

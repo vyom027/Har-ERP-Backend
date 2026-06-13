@@ -41,7 +41,7 @@
 
         <div class="flex flex-col gap-5">
             <!-- Row 1: Context -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1.5">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Color Breakdown</label>
                     {% if lot.colors.all %}
@@ -71,7 +71,7 @@
             </div>
 
             <!-- Row 2: Numbers (Reordered: Size -> Pieces -> Rate) -->
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="flex flex-col gap-1.5">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Size</label>
                     <input type="text" name="size" value="{{ existing_entry.size|default:'' }}" placeholder="e.g. 28" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all">

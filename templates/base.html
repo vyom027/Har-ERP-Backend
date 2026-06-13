@@ -13,22 +13,84 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --primary: #0ea5e9; }
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        body {
+            font-family: 'Inter', sans-serif; color: #0f172a;
+            background:
+                radial-gradient(at 0% 0%, rgba(14,165,233,0.10) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(13,148,136,0.10) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(168,85,247,0.07) 0px, transparent 50%),
+                #f1f5f9;
+        }
         h1, h2, h3, h4, .font-display { font-family: 'Outfit', sans-serif; }
         [x-cloak] { display: none !important; }
         .btn-press { transition: transform 150ms var(--ease-out); }
         .btn-press:active { transform: scale(0.96); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .sidebar-item { transition: transform 150ms var(--ease-out), background-color 150ms var(--ease-out); }
-        .sidebar-item:hover { background: #f1f5f9; transform: translateX(2px); }
+        .sidebar-item { transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out); }
+        .sidebar-item:hover { background: rgba(14, 165, 233, 0.08); color: #0ea5e9; }
         .sidebar-item.active { background: #0ea5e9; color: white; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2); }
+
+        /* Glassmorphism surfaces */
+        .surface-card {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .surface-card-solid {
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .glass-orb {
+            position: fixed;
+            border-radius: 9999px;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: -1;
+            animation: orb-float 24s ease-in-out infinite alternate;
+        }
+        @keyframes orb-float {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(40px, -30px) scale(1.08); }
+        }
+
+        /* Richer hover effects for mouse/trackpad (desktop) */
+        @media (hover: hover) and (pointer: fine) {
+            .surface-card {
+                transition: transform 250ms var(--ease-out), box-shadow 250ms var(--ease-out), border-color 250ms var(--ease-out);
+            }
+            .surface-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 32px -10px rgba(15, 23, 42, 0.15), 0 4px 12px -4px rgba(15, 23, 42, 0.06);
+                border-color: rgba(14, 165, 233, 0.25);
+            }
+            .surface-card-solid {
+                transition: box-shadow 250ms var(--ease-out), border-color 250ms var(--ease-out);
+            }
+            .surface-card-solid:hover {
+                box-shadow: 0 12px 32px -10px rgba(15, 23, 42, 0.1);
+                border-color: rgba(14, 165, 233, 0.15);
+            }
+            .btn-press:hover {
+                transform: translateY(-1px);
+            }
+        }
     </style>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#0ea5e9', surface: '#ffffff', background: '#f8fafc' },
+                    colors: {
+                        primary: '#0ea5e9',
+                        'primary-dark': '#0284c7',
+                        secondary: '#0d9488',
+                        surface: '#ffffff',
+                        background: '#f8fafc',
+                    },
+                    boxShadow: {
+                        premium: '0 8px 30px -8px rgba(15,23,42,0.12), 0 2px 8px -2px rgba(15,23,42,0.05)',
+                    },
                 }
             }
         };
@@ -110,9 +172,37 @@
 </head>
 
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-    <div class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: true }">
+    <!-- Decorative glass orbs -->
+    <div class="glass-orb bg-sky-400/20 w-96 h-96 -top-20 -left-20"></div>
+    <div class="glass-orb bg-teal-400/20 w-[28rem] h-[28rem] -bottom-32 -right-32" style="animation-delay: -8s;"></div>
+    <div class="glass-orb bg-fuchsia-400/10 w-72 h-72 top-1/3 right-1/4" style="animation-delay: -16s;"></div>
+
+    <div class="flex h-screen overflow-hidden"
+         x-init="sidebarOpen = window.innerWidth >= 1024"
+         x-data="{
+            sidebarOpen: false,
+            touchStartX: 0,
+            touchStartY: 0,
+            handleTouchStart(e) {
+                this.touchStartX = e.touches[0].clientX;
+                this.touchStartY = e.touches[0].clientY;
+            },
+            handleTouchEnd(e) {
+                const dx = e.changedTouches[0].clientX - this.touchStartX;
+                const dy = e.changedTouches[0].clientY - this.touchStartY;
+                if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > 0 && this.touchStartX < 30 && !this.sidebarOpen) this.sidebarOpen = true;
+                    else if (dx < 0 && this.sidebarOpen) this.sidebarOpen = false;
+                }
+            }
+         }"
+         @touchstart="handleTouchStart($event)"
+         @touchend="handleTouchEnd($event)">
+        <!-- Mobile sidebar backdrop -->
+        <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden" x-transition.opacity></div>
+
         <!-- Sidebar -->
-        <aside class="bg-white border-r border-slate-200 w-64 flex-shrink-0 flex flex-col transition-all duration-300" :class="sidebarOpen ? 'ml-0' : '-ml-64'">
+        <aside class="bg-white/60 backdrop-blur-xl border-white/40 min-w-0 flex-shrink-0 flex flex-col fixed inset-y-0 left-0 z-50 transition-all duration-300 overflow-hidden lg:static lg:z-auto whitespace-nowrap" :class="sidebarOpen ? 'w-64 border-r' : 'w-0 border-r-0'">
             <div class="p-6 flex items-center gap-3">
                 <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-xl font-bold text-white">HA</span></div>
                 <h1 class="text-xl font-bold text-slate-900 font-display">Har Apperals</h1>
@@ -137,23 +227,26 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-background">
-            <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 z-10">
-                <div class="flex items-center gap-4">
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+            <header class="bg-white/60 backdrop-blur-xl border-b border-white/40 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 z-20 gap-2">
+                <div class="flex items-center gap-2 sm:gap-4 min-w-0">
                     <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded-lg hover:bg-slate-100 text-slate-500 btn-press"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg></button>
-                    <div class="h-6 w-px bg-slate-200 mx-2"></div>
-                    <button onclick="window.history.back()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-primary transition-colors btn-press group" title="Go Back"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg></button>
-                    <h2 class="text-lg font-semibold text-slate-900 font-display">{% block header_title %}Dashboard{% endblock %}</h2>
+                    <div class="h-6 w-px bg-slate-200 mx-2 hidden sm:block"></div>
+                    <button onclick="window.history.back()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-primary transition-colors btn-press group hidden sm:inline-flex" title="Go Back"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg></button>
+                    <h2 class="text-base sm:text-lg font-semibold text-slate-900 font-display truncate">{% block header_title %}Dashboard{% endblock %}</h2>
                 </div>
-                <div class="flex items-center gap-4"><div class="text-right"><p class="text-sm font-semibold text-slate-900">{{ user.username|title }}</p><p class="text-xs text-slate-500">Administrator</p></div><div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-primary font-bold border border-slate-200">{{ user.username.0|upper }}</div></div>
+                <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                    <div class="text-right hidden sm:block"><p class="text-sm font-semibold text-slate-900">{{ user.username|title }}</p><p class="text-xs text-slate-500">Administrator</p></div>
+                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-primary font-bold border border-slate-200 flex-shrink-0">{{ user.username.0|upper }}</div>
+                </div>
             </header>
-            <div id="main-content-area" class="flex-1 overflow-y-auto custom-scrollbar p-8">{% block main_content %}{% endblock %}</div>
+            <div id="main-content-area" class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8">{% block main_content %}{% endblock %}</div>
         </main>
     </div>
 
     <!-- Global Modal Container -->
-    <div id="modal-container" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]" x-data="{ open: false }" x-show="open" x-cloak @open-modal.window="open = true" @close-modal.window="open = false" @keydown.window.escape="open = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-        <div class="bg-white max-w-2xl w-full mx-4 rounded-2xl shadow-2xl overflow-hidden border border-slate-200" @click.away="open = false" x-show="open" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="scale-95 opacity-0" x-transition:enter-end="scale-100 opacity-100">
+    <div id="modal-container" class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px]" x-data="{ open: false }" x-show="open" x-cloak @open-modal.window="open = true" @close-modal.window="open = false" @keydown.window.escape="open = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <div class="bg-white/80 backdrop-blur-2xl max-w-2xl w-full mx-4 rounded-2xl shadow-premium overflow-hidden border border-white/50" @click.away="open = false" x-show="open" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="scale-95 opacity-0" x-transition:enter-end="scale-100 opacity-100">
             <div id="modal-container-inner" hx-target="this">
                 <div id="modal-content"><div class="flex items-center justify-center p-12 htmx-indicator"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div></div>
             </div>

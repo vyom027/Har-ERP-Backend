@@ -4,16 +4,16 @@
 {% block header_title %}Samples Section{% endblock %}
 
 {% block main_content %}
-<div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
+<div class="surface-card-solid rounded-2xl shadow-premium overflow-hidden flex flex-col h-full">
     <!-- Header/Filter Bar -->
-    <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-        <div class="flex items-center gap-4">
-            <div class="relative group">
-                <input type="text" 
-                       name="search" 
+    <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-slate-50/30">
+        <div class="flex items-center gap-4 w-full sm:w-auto">
+            <div class="relative group w-full sm:w-auto">
+                <input type="text"
+                       name="search"
                        value="{{ search }}"
-                       placeholder="Search Sample, Party, Labor..." 
-                       class="bg-white border border-slate-200 rounded-xl px-10 py-2.5 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none w-80 transition-all font-medium"
+                       placeholder="Search Sample, Party, Labor..."
+                       class="bg-white border border-slate-200 rounded-xl px-10 py-2.5 text-sm focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none w-full sm:w-80 transition-all font-medium"
                        hx-get="{% url 'samples:list' %}"
                        hx-trigger="keyup changed delay:500ms"
                        hx-target="#sample-table-container"
@@ -22,17 +22,17 @@
             </div>
         </div>
 
-        <button hx-get="{% url 'samples:sample_modal' %}" 
-                hx-target="#modal-content" 
+        <button hx-get="{% url 'samples:sample_modal' %}"
+                hx-target="#modal-content"
                 @click="$dispatch('open-modal')"
-                class="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all btn-press flex items-center gap-2 shadow-lg shadow-primary/20">
+                class="self-start sm:self-auto bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-sm font-bold transition-all btn-press flex items-center justify-center gap-1.5 shadow-lg shadow-primary/20 whitespace-nowrap">
             <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             Add New Sample
         </button>
     </div>
 
     <!-- Table Container -->
-    <div id="sample-table-container" class="flex-1 overflow-auto custom-scrollbar" hx-get="{% url 'samples:list' %}" hx-trigger="sampleUpdated from:body">
+    <div id="sample-table-container" class="flex-1 min-w-0 overflow-auto custom-scrollbar" hx-get="{% url 'samples:list' %}" hx-trigger="sampleUpdated from:body">
         {% include 'samples/partials/sample_table.html' %}
     </div>
 </div>

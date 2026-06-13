@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponse
-from .models import Labor, Payment
+from .models import Labor, Payment, LaborSetupToken, normalize_mobile
 from apps.production.models import WorkEntry
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.contrib import messages
 from decimal import Decimal
@@ -13,7 +14,28 @@ from xhtml2pdf import pisa
 from django.template.loader import get_template
 import io
 import hashlib
+import urllib.parse
 from django.conf import settings
+
+
+def _wa_link(labor, message):
+    """Build a wa.me link: country-coded digits only, URL-encoded message."""
+    num = normalize_mobile(labor.whatsapp or labor.phone)
+    if num and len(num) == 10:
+        num = '91' + num  # default India country code
+    return f"https://wa.me/{num}?text={urllib.parse.quote(message)}"
+
+
+def _build_setup_link(request, labor):
+    """Issue a fresh token and return (setup_url, wa_me_url)."""
+    raw = LaborSetupToken.issue(labor)
+    domain = request.build_absolute_uri('/')[:-1]
+    setup_url = domain + reverse('labor_setup', kwargs={'token': raw})
+    msg = (
+        f"Welcome to Har Apperals! Set your secret PIN here: {setup_url} "
+        f"(link expires in {LaborSetupToken.EXPIRY_HOURS} hours)"
+    )
+    return setup_url, _wa_link(labor, msg)
 
 def get_labor_token(labor):
     """Generate a stable, secure token for a worker without DB changes."""
@@ -370,3 +392,67 @@ def delete_labor(request, pk):
         messages.warning(request, f"Worker {name} and all their records have been removed.")
         return redirect('labor:labor_list')
     return redirect('labor:labor_list')
+
+
+# ---------------------------------------------------------------------------
+# Worker portal — admin controls
+# ---------------------------------------------------------------------------
+@staff_member_required
+def send_setup_links(request):
+    """Bulk: generate setup links for selected workers, render a wa.me link list."""
+    if request.method != 'POST':
+        return redirect('labor:labor_list')
+
+    ids = request.POST.getlist('labor_ids')
+    workers = Labor.objects.filter(id__in=ids)
+
+    links = []
+    skipped = []
+    for labor in workers:
+        if not normalize_mobile(labor.whatsapp or labor.phone):
+            skipped.append(labor.name)
+            continue
+        setup_url, wa_url = _build_setup_link(request, labor)
+        links.append({'labor': labor, 'setup_url': setup_url, 'wa_url': wa_url})
+
+    if not links and not skipped:
+        messages.error(request, "No workers selected.")
+        return redirect('labor:labor_list')
+
+    return render(request, 'labor/setup_links.html', {'links': links, 'skipped': skipped})
+
+
+@staff_member_required
+def reset_pin(request, pk):
+    """Clear a worker's PIN and issue a fresh setup link."""
+    labor = get_object_or_404(Labor, pk=pk)
+    if request.method == 'POST':
+        if labor.user:
+            labor.user.set_unusable_password()
+            labor.user.save(update_fields=['password'])
+        labor.is_activated = False
+        labor.save(update_fields=['is_activated'])
+
+        if normalize_mobile(labor.whatsapp or labor.phone):
+            setup_url, wa_url = _build_setup_link(request, labor)
+            return render(request, 'labor/setup_links.html', {
+                'links': [{'labor': labor, 'setup_url': setup_url, 'wa_url': wa_url}],
+                'skipped': [], 'single_reset': True,
+            })
+        messages.warning(request, f"{labor.name}'s PIN was reset, but they have no WhatsApp number for a new link.")
+    return redirect('labor:labor_profile', pk=pk)
+
+
+@staff_member_required
+def toggle_access(request, pk):
+    """Enable/disable a worker's portal login."""
+    labor = get_object_or_404(Labor, pk=pk)
+    if request.method == 'POST':
+        labor.login_enabled = not labor.login_enabled
+        labor.save(update_fields=['login_enabled'])
+        if labor.user:
+            labor.user.is_active = labor.login_enabled
+            labor.user.save(update_fields=['is_active'])
+        state = "enabled" if labor.login_enabled else "disabled"
+        messages.success(request, f"Portal access {state} for {labor.name}.")
+    return redirect('labor:labor_profile', pk=pk)
