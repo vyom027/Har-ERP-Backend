@@ -144,6 +144,11 @@ def labor_profile(request, pk):
         start_date = end_date - timedelta(days=10)
     elif period == 'month':
         start_date = end_date - timedelta(days=30)
+    elif period == 'prev_month':
+        first_this_month = end_date.replace(day=1)
+        last_prev_month = first_this_month - timedelta(days=1)
+        start_date = last_prev_month.replace(day=1)
+        end_date = last_prev_month
     elif period == 'custom' and start_date_str and end_date_str:
         try:
             from datetime import datetime
@@ -209,6 +214,11 @@ def public_labor_pdf(request, pk, token):
         start_date = end_date - timedelta(days=10)
     elif period == 'month':
         start_date = end_date - timedelta(days=30)
+    elif period == 'prev_month':
+        first_this_month = end_date.replace(day=1)
+        last_prev_month = first_this_month - timedelta(days=1)
+        start_date = last_prev_month.replace(day=1)
+        end_date = last_prev_month
     elif period == 'custom' and start_date_str and end_date_str:
         try:
             from datetime import datetime
@@ -265,6 +275,11 @@ def export_labor_pdf(request, pk):
         start_date = end_date - timedelta(days=10)
     elif period == 'month':
         start_date = end_date - timedelta(days=30)
+    elif period == 'prev_month':
+        first_this_month = end_date.replace(day=1)
+        last_prev_month = first_this_month - timedelta(days=1)
+        start_date = last_prev_month.replace(day=1)
+        end_date = last_prev_month
     elif period == 'custom' and start_date_str and end_date_str:
         try:
             from datetime import datetime

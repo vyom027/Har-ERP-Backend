@@ -15,7 +15,11 @@
 {% endif %}
 <!-- Filter Bar -->
 <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
-    <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3"
+         hx-target="#production-spreadsheet-wrapper"
+         hx-push-url="true"
+         hx-include="[name='search'], [name='status'], [name='party_id'], [name='start_date'], [name='end_date']">
+        <!-- Search (always visible) -->
         <div class="relative group w-full sm:w-auto">
             <input type="text"
                    id="search-input"
@@ -24,28 +28,92 @@
                    placeholder="Search Lot..."
                    class="bg-white border border-slate-200 rounded-xl px-10 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none w-full sm:w-64 transition-all"
                    hx-get="{% url 'production:table' %}"
-                   hx-trigger="keyup changed delay:500ms"
-                   hx-target="#production-spreadsheet-wrapper"
-                   hx-include="[name='status'], [name='party_id']"
-                   hx-push-url="true">
+                   hx-trigger="keyup changed delay:500ms">
             <svg class="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="hidden" name="party_id" value="{{ party_id|default:'' }}">
         </div>
-        <select name="status" 
-                id="status-select"
-                class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-600 outline-none focus:border-primary transition-all"
-                hx-get="{% url 'production:table' %}"
-                hx-trigger="change"
-                hx-target="#production-spreadsheet-wrapper"
-                hx-include="[name='search'], [name='party_id']"
-                hx-push-url="true">
-            <option value="all" {% if status == 'all' %}selected{% endif %}>All Status</option>
-            <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
-            <option value="closed" {% if status == 'closed' %}selected{% endif %}>Closed</option>
-            <option value="shipped" {% if status == 'shipped' %}selected{% endif %}>Shipped</option>
-        </select>
-        <button hx-get="{% url 'production:quick_add' %}" 
-                hx-target="#modal-content" 
+
+        <!-- Filters dropdown -->
+        <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+            <button type="button" @click="open = !open"
+                    class="relative bg-white border border-slate-200 hover:border-primary text-slate-600 px-4 py-2 rounded-xl text-sm font-bold transition-all btn-press flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L14 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 018 21v-7.586L3.293 6.707A1 1 0 013 6V4z"></path></svg>
+                Filters
+                {% if party_id or start_date or end_date or status != 'active' %}
+                <span class="w-2 h-2 rounded-full bg-primary"></span>
+                {% endif %}
+                <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+
+            <div x-show="open" x-cloak x-transition.origin.top.left
+                 class="absolute left-0 mt-2 w-72 bg-white rounded-2xl shadow-premium border border-slate-100 p-4 z-30 space-y-4">
+
+                <!-- Party -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Party</label>
+                    <select name="party_id"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-600 outline-none focus:border-primary transition-all"
+                            hx-get="{% url 'production:table' %}" hx-trigger="change">
+                        <option value="">All Parties</option>
+                        {% for p in parties %}
+                        <option value="{{ p.id }}" {% if party_id|stringformat:'s' == p.id|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Status</label>
+                    <select name="status" id="status-select"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-600 outline-none focus:border-primary transition-all"
+                            hx-get="{% url 'production:table' %}" hx-trigger="change">
+                        <option value="all" {% if status == 'all' %}selected{% endif %}>All Status</option>
+                        <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="closed" {% if status == 'closed' %}selected{% endif %}>Closed</option>
+                        <option value="shipped" {% if status == 'shipped' %}selected{% endif %}>Shipped</option>
+                    </select>
+                </div>
+
+                <!-- Date presets -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Quick Range</label>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" onclick="prodDateRange(5)" class="bg-slate-100 hover:bg-primary hover:text-white text-slate-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all">5 Days</button>
+                        <button type="button" onclick="prodDateRange(10)" class="bg-slate-100 hover:bg-primary hover:text-white text-slate-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all">10 Days</button>
+                        <button type="button" onclick="prodDateRange(20)" class="bg-slate-100 hover:bg-primary hover:text-white text-slate-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all">20 Days</button>
+                        <button type="button" onclick="prodDateRange('month')" class="bg-slate-100 hover:bg-primary hover:text-white text-slate-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all">This Month</button>
+                        <button type="button" onclick="prodDateRange('prevmonth')" class="bg-slate-100 hover:bg-primary hover:text-white text-slate-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg transition-all">Last Month</button>
+                    </div>
+                </div>
+
+                <!-- Custom date range -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Custom Range</label>
+                    <div class="flex items-center gap-1.5">
+                        <input type="date" name="start_date" value="{{ start_date }}" title="From date"
+                               class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-primary"
+                               hx-get="{% url 'production:table' %}" hx-trigger="change">
+                        <span class="text-slate-300 text-xs">&ndash;</span>
+                        <input type="date" name="end_date" value="{{ end_date }}" title="To date"
+                               class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-primary"
+                               hx-get="{% url 'production:table' %}" hx-trigger="change">
+                    </div>
+                </div>
+
+                <!-- Clear all -->
+                {% if party_id or start_date or end_date or status != 'active' or search %}
+                <a href="{% url 'production:table' %}"
+                   hx-get="{% url 'production:table' %}" hx-target="#production-spreadsheet-wrapper" hx-push-url="true"
+                   hx-params="none" hx-include="unset"
+                   class="block text-center text-xs font-bold text-rose-500 hover:bg-rose-50 py-2 rounded-lg transition-all">
+                    Clear All Filters
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Add Production -->
+        <button hx-get="{% url 'production:quick_add' %}"
+                hx-target="#modal-content"
                 @click="$dispatch('open-modal')"
                 class="bg-sky-50 hover:bg-sky-100 text-primary px-4 py-2 rounded-xl text-sm font-bold transition-all btn-press flex items-center gap-2 border border-sky-100 shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -62,13 +130,40 @@
     </div>
 </div>
 
+<script>
+    // Date presets for the production filter. Sets the date inputs (local time)
+    // then fires one combined HTMX request via the end_date input's change trigger.
+    function prodFmt(d) {
+        var m = ('0' + (d.getMonth() + 1)).slice(-2);
+        var day = ('0' + d.getDate()).slice(-2);
+        return d.getFullYear() + '-' + m + '-' + day;
+    }
+    function prodDateRange(kind) {
+        var today = new Date();
+        var s, e = today;
+        if (kind === 'month') {
+            s = new Date(today.getFullYear(), today.getMonth(), 1);
+        } else if (kind === 'prevmonth') {
+            s = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            e = new Date(today.getFullYear(), today.getMonth(), 0);
+        } else {
+            s = new Date(); s.setDate(today.getDate() - parseInt(kind, 10));
+        }
+        var sd = document.querySelector("[name='start_date']");
+        var ed = document.querySelector("[name='end_date']");
+        sd.value = prodFmt(s);
+        ed.value = prodFmt(e);
+        ed.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+</script>
+
 <!-- Spreadsheet Container -->
 <div id="table-container" class="flex-1 min-w-0 overflow-auto custom-scrollbar relative">
     <table class="w-full border-collapse text-[11px]">
         <thead>
             <tr class="bg-slate-50">
                 <th class="sticky left-0 top-0 z-30 bg-white border-b border-r border-slate-200 px-4 py-3 min-w-[100px] text-left text-slate-500 font-bold uppercase tracking-tighter" rowspan="2">
-                    <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'lot_asc' %}lot_desc{% else %}lot_asc{% endif %}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
+                    <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'lot_asc' %}lot_desc{% else %}lot_asc{% endif %}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}&start_date={{ start_date }}&end_date={{ end_date }}"
                        hx-target="#production-spreadsheet-wrapper"
                        hx-push-url="true"
                        class="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors">
@@ -79,7 +174,7 @@
                     </a>
                 </th>
                 <th class="sticky sm:left-[100px] top-0 z-30 bg-white border-b border-r border-slate-200 px-4 py-3 min-w-[150px] text-left text-slate-500 font-bold uppercase tracking-tighter" rowspan="2">
-                    <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'party_asc' %}party_desc{% else %}party_asc{% endif %}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
+                    <a hx-get="{% url 'production:table' %}?sort={% if current_sort == 'party_asc' %}party_desc{% else %}party_asc{% endif %}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}&start_date={{ start_date }}&end_date={{ end_date }}"
                        hx-target="#production-spreadsheet-wrapper"
                        hx-push-url="true"
                        class="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors">
@@ -252,7 +347,7 @@
     <div class="flex items-center gap-1">
         {% if page_obj.has_previous %}
         <!-- First Page -->
-        <button hx-get="{% url 'production:table' %}?page=1&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
+        <button hx-get="{% url 'production:table' %}?page=1&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}&start_date={{ start_date }}&end_date={{ end_date }}"
                 hx-target="#production-spreadsheet-wrapper"
                 hx-push-url="true"
                 title="First Page"
@@ -260,7 +355,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7M18 19l-7-7 7-7"></path></svg>
         </button>
         <!-- Previous Page -->
-        <button hx-get="{% url 'production:table' %}?page={{ page_obj.previous_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
+        <button hx-get="{% url 'production:table' %}?page={{ page_obj.previous_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}&start_date={{ start_date }}&end_date={{ end_date }}"
                 hx-target="#production-spreadsheet-wrapper"
                 hx-push-url="true"
                 title="Previous Page"
@@ -275,7 +370,7 @@
                 {% if n == page_obj.number %}
                 <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white text-[11px] font-bold shadow-lg shadow-primary/20">{{ n }}</span>
                 {% elif n > page_obj.number|add:'-3' and n < page_obj.number|add:'3' %}
-                <button hx-get="{% url 'production:table' %}?page={{ n }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
+                <button hx-get="{% url 'production:table' %}?page={{ n }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}&start_date={{ start_date }}&end_date={{ end_date }}"
                         hx-target="#production-spreadsheet-wrapper"
                         hx-push-url="true"
                         class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-sm text-slate-500 text-[11px] font-bold transition-all">{{ n }}</button>
@@ -285,7 +380,7 @@
 
         {% if page_obj.has_next %}
         <!-- Next Page -->
-        <button hx-get="{% url 'production:table' %}?page={{ page_obj.next_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
+        <button hx-get="{% url 'production:table' %}?page={{ page_obj.next_page_number }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}&start_date={{ start_date }}&end_date={{ end_date }}"
                 hx-target="#production-spreadsheet-wrapper"
                 hx-push-url="true"
                 title="Next Page"
@@ -293,7 +388,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
         <!-- Last Page -->
-        <button hx-get="{% url 'production:table' %}?page={{ page_obj.paginator.num_pages }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}"
+        <button hx-get="{% url 'production:table' %}?page={{ page_obj.paginator.num_pages }}&sort={{ current_sort }}&search={{ search }}&status={{ status }}&party_id={{ party_id|default:'' }}&start_date={{ start_date }}&end_date={{ end_date }}"
                 hx-target="#production-spreadsheet-wrapper"
                 hx-push-url="true"
                 title="Last Page"

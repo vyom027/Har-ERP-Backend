@@ -33,6 +33,7 @@
                     <button onclick="setRange('15')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold px-3 py-2.5 rounded-xl transition-all uppercase tracking-wider">Last 15 Days</button>
                     <button onclick="setRange('week')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold px-3 py-2.5 rounded-xl transition-all uppercase tracking-wider">This Week</button>
                     <button onclick="setRange('month')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold px-3 py-2.5 rounded-xl transition-all uppercase tracking-wider">This Month</button>
+                    <button onclick="setRange('prevmonth')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-bold px-3 py-2.5 rounded-xl transition-all uppercase tracking-wider">Last Month</button>
                 </div>
             </div>
         </div>
@@ -81,7 +82,16 @@
     function setRange(type) {
         const today = new Date();
         let start = new Date();
-        
+
+        // Previous calendar month: set both start AND end, then stop.
+        if (type === 'prevmonth') {
+            const s = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const e = new Date(today.getFullYear(), today.getMonth(), 0); // last day of prev month
+            document.getElementById('start_date').value = s.toISOString().split('T')[0];
+            document.getElementById('end_date').value = e.toISOString().split('T')[0];
+            return;
+        }
+
         if (type === 'week') {
             start.setDate(today.getDate() - today.getDay());
         } else if (type === 'month') {
@@ -91,7 +101,7 @@
         } else if (type === '15') {
             start.setDate(today.getDate() - 15);
         }
-        
+
         document.getElementById('start_date').value = start.toISOString().split('T')[0];
         document.getElementById('end_date').value = today.toISOString().split('T')[0];
     }

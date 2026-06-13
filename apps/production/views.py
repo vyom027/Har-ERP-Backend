@@ -20,19 +20,27 @@ def production_table(request):
     status = request.GET.get('status', 'active')
     page = request.GET.get('page', 1)
     party_id = request.GET.get('party_id')
-    
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+
     ops = Operation.objects.filter(active=True).prefetch_related('sub_operations')
-    
+
     # Base Queryset
     lots_qs = Lot.objects.select_related('party').prefetch_related('colors')
-    
+
     # Apply Party Filter
+    from apps.core.models import Party
     party = None
     if party_id:
-        from apps.core.models import Party
         party = get_object_or_404(Party, id=party_id)
         lots_qs = lots_qs.filter(party_id=party_id)
-    
+
+    # Apply Date Range Filter (on lot creation date)
+    if start_date:
+        lots_qs = lots_qs.filter(created_at__date__gte=start_date)
+    if end_date:
+        lots_qs = lots_qs.filter(created_at__date__lte=end_date)
+
     # Apply Status Filter
     if status and status != 'all':
         lots_qs = lots_qs.filter(status=status)
@@ -112,8 +120,11 @@ def production_table(request):
         'status': status,
         'party_id': party_id,
         'party': party,
+        'start_date': start_date,
+        'end_date': end_date,
+        'parties': Party.objects.order_by('name'),
     }
-    
+
     if request.headers.get('HX-Request'):
         return render(request, 'production/partials/table_full.html', context)
     
